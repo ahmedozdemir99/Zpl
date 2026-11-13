@@ -1,54 +1,525 @@
 import type { Course, Question } from '../types';
 
-// Rows contain a specific learning outcome, the prompt, the key and three distractors.
-const bank: Record<Exclude<Course, 'mathematics'>, string[]> = {
-  turkish: [
-    `Cümlenin yüklem türünü tanıma|“Bugünkü toplantı çok verimliydi.” Yüklemine göre cümle türü nedir?|İsim cümlesi|Fiil cümlesi|Eksiltili cümle|Devrik cümle
-Fiilimsiyi tanıma|“Koşarak otobüse yetişti.” cümlesindeki fiilimsi nedir?|Koşarak|Otobüse|Yetişti|Otobüs
-Metinde gerekçeyi belirleme|“Kütüphane hafta sonu açık olmalı çünkü birçok öğrenci hafta içi gelemiyor.” Önerinin gerekçesi nedir?|Öğrencilerin hafta içi gelememesi|Kitapların artması|Sınavın ertelenmesi|Kütüphanenin taşınması
-Cümlenin ögelerini belirleme|“Mert akşam çantasını hazırladı.” cümlesinin öznesi nedir?|Mert|Akşam|Çantasını|Hazırladı
-Ana düşünceyi belirleme|“Bir karar vermeden önce farklı kaynaklara bakmak, yanlış bilginin etkisini azaltır.” Ana düşünce nedir?|Bilgiyi farklı kaynaklardan doğrulamak önemlidir|Tek kaynağa güvenmek yeterlidir|Hızlı karar her zaman iyidir|Bilgi paylaşımı durdurulmalıdır`,
-  ],
-  science: [
-    `DNA ile gen arasındaki ilişkiyi açıklama|Kalıtsal bilgi taşıyan DNA bölümü nedir?|Gen|Hücre|Doku|Organ
-Katı basıncını yorumlama|Karda geniş tabanlı ayakkabı giymek yüzeye uygulanan basıncı nasıl değiştirir?|Azaltır|Artırır|Değiştirmez|Önce artırır
-Mevsimlerin oluşumunu açıklama|Dünya’nın Güneş çevresindeki dolanımıyla birlikte mevsimleri oluşturan özellik nedir?|Eksen eğikliği|Ay’ın evreleri|Dünya’nın çekirdeği|Okyanusların tuzluluğu
-Basit makinelerde kuvvet kazancını yorumlama|Yükü aynı yüksekliğe çıkaran daha uzun bir rampada gerekli kuvvet nasıl değişir?|Azalır|Artar|Değişmez|Sıfır olur
-Madde döngülerini açıklama|Bitkiler fotosentezde atmosferden hangi gazı alır?|Karbondioksit|Oksijen|Helyum|Hidrojen`,
-  ],
-  social: [
-    `Millî Mücadele’de egemenlik anlayışını açıklama|“Milletin bağımsızlığını yine milletin azim ve kararı kurtaracaktır.” sözü hangi genelgede yer alır?|Amasya Genelgesi|Havza Genelgesi|Tekâlif-i Milliye|Misak-ı Millî
-Kongrelerin kararlarını tanıma|Millî cemiyetlerin tek çatı altında toplandığı kongre hangisidir?|Sivas Kongresi|Erzurum Kongresi|Balıkesir Kongresi|Alaşehir Kongresi
-TBMM’nin açılışını yorumlama|23 Nisan 1920’de hangi kurum açılmıştır?|Türkiye Büyük Millet Meclisi|Türk Dil Kurumu|Türk Tarih Kurumu|Millet Mektepleri
-Atatürk ilkeleriyle inkılapları ilişkilendirme|Saltanatın kaldırılması ve Cumhuriyet’in ilanı en doğrudan hangi ilkeyle ilişkilidir?|Cumhuriyetçilik|Devletçilik|Milliyetçilik|Halkçılık
-Millî Mücadele’nin diplomatik sonuçlarını tanıma|Yeni Türk devletinin bağımsızlığını uluslararası düzeyde tanıtan antlaşma hangisidir?|Lozan Barış Antlaşması|Sevr Antlaşması|Mondros Ateşkes Antlaşması|Brest-Litovsk Antlaşması`,
-  ],
-  religion: [
-    `Kader ve insanın sorumluluğunu ilişkilendirme|Bir öğrencinin sınava hazırlanmayı seçmesi hangi kavramla açıklanır?|İrade|Tesadüf|Kıble|İnfak
-Zekâtın toplumsal işlevini açıklama|Zekâtın ihtiyaç sahiplerine verilmesi hangi toplumsal değeri güçlendirir?|Dayanışma|Rekabet|Gösteriş|İsraf
-Hz. Muhammed’in örnek davranışlarını tanıma|Hz. Muhammed’in güvenilirliğini anlatan lakap nedir?|El-Emin|El-Fatih|El-Âlim|El-Melik
-Kur’an’ın temel konularını ayırt etme|Peygamberlerin hayatından ders veren anlatılara ne ad verilir?|Kıssa|Sure|Cüz|Meal
-Din ve hayat arasındaki ilişkiyi yorumlama|Bir satıcının ürünündeki kusuru müşteriye söylemesi hangi ahlaki ilkeye örnektir?|Dürüstlük|İsraf|Gösteriş|Kıskançlık`,
-  ],
-  english: [
-    `Friendship • Davete verilen cevabı yorumlama|“Would you like to join us?” “I’d love to, but I have a match.” What does the reply express?|Refusal with a reason|Acceptance|A new invitation|A request for directions
-Teen Life • Alışkanlık bilgisini yorumlama|“I usually practice guitar after school.” What does she usually do after school?|Practices guitar|Plays football|Reads magazines|Meets her cousins
-In the Kitchen • İşlem sırasını takip etme|“First chop the onions. Then heat the oil.” What comes before heating the oil?|Chopping the onions|Adding salt|Serving the meal|Washing the pan
-On the Phone • Mesaj bırakma amacını anlama|“Could you tell Mert to call me back?” What does the caller want Mert to do?|Return the call|Send an email|Visit the caller|Buy a new phone
-The Internet • Güvenli internet davranışını tanıma|“Never share your password with strangers.” What should you keep private?|Your password|Your favorite sport|A weather report|A public article`,
-  ],
-};
-const gradeEightCodes: Record<string, string[]> = {
-  turkish: ['T.8.4.19', 'T.8.3.9', 'T.8.3.14', 'T.8.4.18', 'T.8.3.17'],
-  science: ['F.8.2.1.1', 'F.8.3.1.1', 'F.8.1.1.1', 'F.8.5.1.1', 'F.8.6.2.2'],
-  social: ['İTA.8.2.5', 'İTA.8.2.5', 'İTA.8.2.6', 'İTA.8.4.1', 'İTA.8.3.6'],
-  religion: ['DKAB.8.1.2', 'DKAB.8.2.3', 'DKAB.8.4.1', 'DKAB.8.5.2', 'DKAB.8.3.1'],
-  english: ['E8.1.R1', 'E8.2.R1', 'E8.3.R1', 'E8.4.R1', 'E8.5.R1'],
+type BankEntry = {
+  grade: 5 | 6 | 7 | 8;
+  course: Exclude<Course, 'mathematics'>;
+  code: string;
+  outcome: string;
+  difficulty: Question['difficulty'];
+  q: string;
+  a: string;
+  distractors: [string, string, string];
+  explanation: string;
 };
 
-export const courseBank: Question[] = Object.entries(bank).flatMap(([course, levels]) =>
-  levels[0].split('\n').map((row, number) => {
-    const [outcome, q, a, ...distractors] = row.split('|');
-    return { course: course as Course, grade: 8, difficulty: number < 2 ? 'kolay' : number < 4 ? 'orta' : 'zor',
-      outcome, outcomeCode: gradeEightCodes[course][number], subject: outcome, q, a, distractors, category: 'context' };
-  }));
+const entries: BankEntry[] = [
+  // ===================== TÜRKÇE (5–8) =====================
+  {
+    grade: 5, course: 'turkish', code: 'T.O.5.7', outcome: 'Metinde sebep-sonuç ve amaç-sonuç ilişkisi', difficulty: 'kolay',
+    q: '“Sabah yağan dolu bahçedeki fideleri ezdiği için çiftçi seranın örtüsünü yeniden onardı.” Bu cümledeki durumla ilgili aşağıdakilerden hangisi söylenebilir?',
+    a: 'Onarım yapmanın nedeni fidelerin zarar görmesidir',
+    distractors: ['Çiftçi fideleri dikmek amacıyla serayı sökmüştür', 'Seranın örtüsü doludan önce yırtılmıştır', 'Bahçede hiç fide bulunmamaktadır'],
+    explanation: '“-dığı için” eki eylemin sebebini bildirir; neden fidelerin ezilmesi, sonuç seranın onarılmasıdır.',
+  },
+  {
+    grade: 5, course: 'turkish', code: 'T.O.5.10', outcome: 'Noktalama işaretlerinin metindeki işlevini belirleme', difficulty: 'orta',
+    q: '“Öğretmen sınıfa dönüp( ) Çocuklar( ) yarınki gezi için şunları getirin( ) şapka( ) matara ve defter.” cümlesindeki yay ayraçlara sırasıyla hangi noktalama işaretleri gelmelidir?',
+    a: '(:) (,) (:) (,)',
+    distractors: ['(,) (:) (;) (,)', '(.) (,) (;) (.)', '(:) (;) (.) (,)'],
+    explanation: 'Konuşma öncesi (:), hitap sonrası (,), örnek sıralaması öncesi (:) ve eş görevli kelimeler arası (,) kullanılır.',
+  },
+  {
+    grade: 6, course: 'turkish', code: 'T.O.6.6', outcome: 'Söz sanatlarını ve anlam inceliklerini ayırt etme', difficulty: 'kolay',
+    q: '“Sonbahar rüzgârı, dallarda kalan son yapraklara usulca fısıldayıp vedalaştı.” cümlesinde rüzgâra insana özgü hangi özellikler yüklenmiştir?',
+    a: 'Fısıldamak ve vedalaşmak (kişileştirme)',
+    distractors: ['Esip savurmak (abartma)', 'Yaprakları dökmek (benzetme)', 'Renkleri karıştırmak (konuşturma)'],
+    explanation: 'İnsana ait "fısıldama ve vedalaşma" davranışları rüzgâra aktarılarak kişileştirme sanatı yapılmıştır.',
+  },
+  {
+    grade: 6, course: 'turkish', code: 'T.O.6.12', outcome: 'Cümleler arası anlam ilişkisi ve geçiş ifadeleri', difficulty: 'orta',
+    q: '“Okul bahçesine dikilen fidanların çoğu tuttu; ---- kuzey rüzgârına açık köşedeki üç fidan kurudu.” Boşluğa düşüncenin yönünü değiştiren hangi ifade getirilmelidir?',
+    a: 'ancak',
+    distractors: ['bu nedenle', 'üstelik', 'dolayısıyla'],
+    explanation: 'İlk bölümde olumlu (tuttu), ikinci bölümde olumsuz (kurudu) bir durum anlatıldığı için zıtlık bildiren "ancak" uygundur.',
+  },
+  {
+    grade: 7, course: 'turkish', code: 'T.O.7.8', outcome: 'Metinde öznel ve nesnel yargıları ayırt etme', difficulty: 'kolay',
+    q: '“Müzenin giriş katında 140 adet arkeolojik eser sergileniyor; özellikle güneş saati bölümü ziyaretçileri büyüleyen eşsiz bir atmosfere sahip.” Bu cümle için en doğru tespit hangisidir?',
+    a: 'İlk bölüm nesnel, ikinci bölüm öznel yargı içermektedir',
+    distractors: ['Cümlenin tamamı kanıtlanabilir nesnel veridir', 'İlk bölüm kişisel beğeni içerdiği için özneldir', 'Cümlede herhangi bir karşılaştırma ya da yorum yoktur'],
+    explanation: '“140 eser” ölçülebilir nesnel bir bilgidir; “büyüleyen eşsiz atmosfer” ise kişisel değerlendirme (öznel) içerir.',
+  },
+  {
+    grade: 7, course: 'turkish', code: 'T.O.7.13', outcome: 'Anlatım bozukluklarını ve anlam tutarlılığını belirleme', difficulty: 'zor',
+    q: '“Hemen hemen yaklaşık kırk dakikadır otobüsün gelmesini bekliyoruz.” cümlesindeki anlatım bozukluğu hangi değişiklikle giderilir?',
+    a: '“Hemen hemen” veya “yaklaşık” ifadelerinden biri çıkarılarak',
+    distractors: ['“otobüsün” sözcüğü “otobüsü” yapılarak', '“bekliyoruz” yüklemi “bekledi” olarak değiştirilerek', '“kırk” sayısı yerine “elli” yazılarak'],
+    explanation: '“Hemen hemen” ve “yaklaşık” aynı anlamı taşıyan gereksiz sözcüklerdir; yalnızca birinin kullanılması gerekir.',
+  },
+  {
+    grade: 8, course: 'turkish', code: 'T.8.4.19', outcome: 'Cümlenin yüklem türünü ve yapısını bağlamdan çıkarma', difficulty: 'kolay',
+    q: '“Bilim şenliğindeki tüm projeler, öğrencilerin haftalarca süren emeğinin ürünüydü.” cümlesinin yüklemi ve türü aşağıdakilerden hangisidir?',
+    a: '“öğrencilerin haftalarca süren emeğinin ürünüydü” · İsim cümlesi',
+    distractors: ['“ürünüydü” · Fiil cümlesi', '“süren emeğinin” · Devrik cümle', '“projeler” · Eksiltili cümle'],
+    explanation: 'Yüklem isim tamlaması grubundan oluştuğu için tek başına bölünemez ve ek-fiil almış bir isim cümlesidir.',
+  },
+  {
+    grade: 8, course: 'turkish', code: 'T.8.3.9', outcome: 'Fiilimsilerin metindeki işlevini analiz etme', difficulty: 'orta',
+    q: '“Toplantı başlamadan önce hazırladığı notları masaya bırakan görevli, salondan sessizce ayrıldı.” cümlesinde altı çizilebilecek sıfat-fiil ve zarf-fiil görevindeki sözcükler hangi seçenekte doğru eşleştirilmiştir?',
+    a: 'Sıfat-fiil: hazırladığı, bırakan · Zarf-fiil: başlamadan',
+    distractors: ['Sıfat-fiil: sessizce · Zarf-fiil: ayrıldı', 'Sıfat-fiil: başlamadan · Zarf-fiil: hazırladığı', 'İsim-fiil: hazırladığı · Sıfat-fiil: ayrıldı'],
+    explanation: '“hazırladığı” (-dık) ve “bırakan” (-an) isimleri niteleyen sıfat-fiiller; “başlamadan” (-madan) zaman bildiren zarf-fiildir.',
+  },
+  {
+    grade: 8, course: 'turkish', code: 'T.8.3.14', outcome: 'Metinde gerekçe ve karşıt görüş analizi', difficulty: 'orta',
+    q: '“Kütüphane hafta sonları da açık kalmalı; çünkü hafta içi kurslara giden pek çok öğrenci yalnızca cumartesi günleri araştırma yapabiliyor.” Bu cümlede savunulan önerinin temel gerekçesi nedir?',
+    a: 'Öğrencilerin hafta içi zaman kısıtı nedeniyle hafta sonuna ihtiyaç duyması',
+    distractors: ['Kütüphanedeki kitap sayısının yetersiz olması', 'Hafta içi kütüphanenin tadilatta bulunması', 'Hafta sonu kursların tamamen yasaklanması'],
+    explanation: '“çünkü” bağlacından sonraki yargı, kütüphanenin hafta sonu açık olması önerisinin dayanağını/gerekçesini verir.',
+  },
+
+  // ===================== FEN BİLİMLERİ (5–8) =====================
+  {
+    grade: 5, course: 'science', code: 'FB.5.2.1', outcome: 'Canlıları sınıflandırma ve gözlem verisi yorumlama', difficulty: 'kolay',
+    q: 'Bir öğrenci bahçede bulduğu bir canlının yumurtayla çoğaldığını, vücudunun tüylerle kaplı olduğunu ve akciğer solunumu yaptığını gözlemliyor. Bu canlı hangi omurgalı sınıfında yer alır?',
+    a: 'Kuşlar',
+    distractors: ['Memeliler', 'Sürüngenler', 'Kurbağalar'],
+    explanation: 'Vücudunun tüylerle kaplı olması ve yumurtayla çoğalması yalnızca kuşlar sınıfına özgü birleşik özelliklerdir.',
+  },
+  {
+    grade: 5, course: 'science', code: 'FB.5.6.2', outcome: 'Işığın yayılması ve gölge boyu değişkeni', difficulty: 'orta',
+    q: 'Bir el feneri ile beyaz perde arasındaki opak top, perdeye yaklaştırılıp ışık kaynağından uzaklaştırılıyor. Bu değişiklik perdedeki tam gölgeyi nasıl etkiler?',
+    a: 'Tam gölgenin alanı küçülür',
+    distractors: ['Tam gölgenin alanı büyür', 'Tam gölgenin şekli kareye dönüşür', 'Perdedeki gölge tamamen yok olur'],
+    explanation: 'Opak cisim ışık kaynağından uzaklaşıp perdeye yaklaştıkça engellediği ışık konisi daralır ve gölge küçülür.',
+  },
+  {
+    grade: 6, course: 'science', code: 'FB.6.1.1.1', outcome: 'Gezegenleri yapısal özelliklerine göre sınıflandırma', difficulty: 'kolay',
+    q: 'Bir öğrencinin hazırladığı posterde Merkür, Venüs, Dünya ve Mars aynı çerçeveye alınmış; diğer çerçeveye Jüpiter, Satürn, Uranüs ve Neptün konmuştur. Bu sınıflandırmanın temel ölçütü nedir?',
+    a: 'Karasal (kayalık) ve gazsal yapıya sahip olmaları',
+    distractors: ['Hepsinin aynı sayıda uyduya sahip olması', 'Hepsinin yüzey sıcaklığının aynı olması', 'Yörüngelerinin birbirini kesmesi'],
+    explanation: 'İlk dört gezegen iç/karasal (kayalık), son dört gezegen ise dış/gazsal gezegenler olarak sınıflandırılır.',
+  },
+  {
+    grade: 6, course: 'science', code: 'FB.6.6.1', outcome: 'Elektrik iletkeni ve yalıtkan malzemeleri seçme', difficulty: 'orta',
+    q: 'Bir elektrik tamircisi çalışırken ellerine kauçuk eldiven takmakta, kullanacağı kabloların iç kısmını ise bakır telden seçmektedir. Tamircinin bu iki malzeme seçimi sırasıyla hangi özelliklere dayanır?',
+    a: 'Kauçuğun yalıtkan, bakırın iletken olmasına',
+    distractors: ['Kauçuğun iletken, bakırın yalıtkan olmasına', 'Her iki maddenin de elektriği iletmesine', 'Her iki maddenin de mıknatıs tarafından çekilmesine'],
+    explanation: 'Bakır elektrik akımını iletirken kauçuk elektrik akımını geçirmediği (yalıtkan olduğu) için güvenli koruma sağlar.',
+  },
+  {
+    grade: 7, course: 'science', code: 'FB.7.1.2.2', outcome: 'Yıldız, galaksi ve evren ilişkisini çözümleme', difficulty: 'kolay',
+    q: 'Bir astronomi makalesinde “Güneş, Samanyolu içindeki milyarlarca yıldızdan yalnızca biridir; Samanyolu ise gözlemlenebilir evrendeki milyarlarca galaksiden biridir.” deniyor. Bu bilgi kapsam sıralamasını küçükten büyüğe nasıl kurar?',
+    a: 'Yıldız → Galaksi → Evren',
+    distractors: ['Evren → Galaksi → Yıldız', 'Galaksi → Yıldız → Evren', 'Yıldız → Evren → Galaksi'],
+    explanation: 'Yıldızlar galaksileri oluşturur; galaksiler ve aralarındaki tüm uzay ise evreni meydana getirir.',
+  },
+  {
+    grade: 7, course: 'science', code: 'FB.7.3.1', outcome: 'Kütle ve ağırlık farkını gezegen senaryosuyla yorumlama', difficulty: 'orta',
+    q: 'Dünya’da dinamometre ile 60 N ölçülen bir taş, kütle çekim kuvvetinin Dünya’nın yaklaşık 1/6’sı kadar olduğu Ay’a götürülüyor. Ay’da eşit kollu terazi ve dinamometre ile yapılan ölçümler hakkında hangisi doğrudur?',
+    a: 'Eşit kollu terazide ölçülen kütle değişmez, dinamometredeki ağırlık 10 N olur',
+    distractors: ['Hem kütle hem ağırlık 6 katına çıkar', 'Ağırlık 60 N kalır, kütle altıda birine düşer', 'Dinamometre Ay’da sıfırı gösterir'],
+    explanation: 'Kütle değişmeyen madde miktarıdır (terazi ile ölçülür). Ağırlık yer çekimine bağlı olduğundan Ay’da 60 ÷ 6 = 10 N olur.',
+  },
+  {
+    grade: 8, course: 'science', code: 'F.8.2.1.1', outcome: 'DNA, gen, kromozom ve nükleotid ilişkisini çözümleme', difficulty: 'kolay',
+    q: 'Bir genetik modelinde şifre zincirinin yapı taşları fosfat, şeker ve organik bazdan oluşuyor; belirli uzunluktaki anlamlı bölümler ise saç rengi gibi kalıtsal özellikleri belirliyor. Bu modelde “kalıtsal özelliği belirleyen anlamlı bölüm” aşağıdakilerden hangisidir?',
+    a: 'Gen',
+    distractors: ['Nükleotid', 'Sitoplazma', 'Mitokondri'],
+    explanation: 'Nükleotidler DNA’nın yapı birimi, genler ise DNA üzerinde belirli kalıtsal karakterleri kodlayan görev birimleridir.',
+  },
+  {
+    grade: 8, course: 'science', code: 'F.8.4.3.1', outcome: 'Fiziksel ve kimyasal değişimleri kanıtlarla ayırt etme', difficulty: 'orta',
+    q: 'Bir mutfak etkinliğinde (1) buz küpleri eritiliyor, (2) elma dilimleniyor, (3) hamur fırında mayalanıp pişiriliyor. Hangi işlemde maddenin iç yapısı değişerek yeni maddeler oluşmuştur?',
+    a: 'Yalnızca 3. işlemde (hamurun pişmesi)',
+    distractors: ['1 ve 2. işlemlerde', 'Yalnızca 1. işlemde (buzun erimesi)', 'Üç işlemin tamamında'],
+    explanation: 'Hal değişimi (erime) ve kesme (dilimleme) fiziksel değişimdir; pişirme ise kimyasal bağları değiştiren kimyasal değişimdir.',
+  },
+  {
+    grade: 8, course: 'science', code: 'F.8.5.1.1', outcome: 'Basit makinelerde kuvvet kazancı ve yol ilişkisi', difficulty: 'zor',
+    q: 'Ağır bir sandığı 1,5 m yüksekliğindeki kamyon kasasına çıkarmak için 3 m’lik rampa yerine 6 m’lik daha uzun bir rampa kuruluyor. Bu değişikliğin işe ve uygulanan kuvvete etkisi nasıldır? (Sürtünmeler önemsiz)',
+    a: 'Uygulanan kuvvet yarıya düşer (kuvvet kazancı artar), yapılan iş değişmez',
+    distractors: ['Hem uygulanan kuvvet hem yapılan iş yarıya düşer', 'Uygulanan kuvvet artar, yapılan iş azalır', 'Yol uzadığı için yapılan iş iki katına çıkar'],
+    explanation: 'Basit makineler işten kazanç sağlamaz; eğik düzlem uzadıkça kuvvet kazancı artar ve aynı iş daha küçük kuvvetle yapılır.',
+  },
+
+  // ===================== SOSYAL / İNKILAP (5–8) =====================
+  {
+    grade: 5, course: 'social', code: 'SB.5.2.1', outcome: 'Tarihî miras ve kültürel ögeleri koruma bilinci', difficulty: 'kolay',
+    q: 'Anadolu’daki bir antik kent gezisinde öğrencilerin tarihî sütunlara yazı yazmasını önlemek için müze yönetimi bilgilendirici tabelalar ve güvenlik şeritleri yerleştirmiştir. Bu önlemin temel amacı nedir?',
+    a: 'Ortak insanlık mirası olan tarihî eserleri gelecek nesillere bozulmadan aktarmak',
+    distractors: ['Müzeye gelen ziyaretçi sayısını azaltmak', 'Eserlerin ticari fiyatını yükseltmek', 'Tarihî yapıların yerini değiştirmek'],
+    explanation: 'Tarihî eserler geri döndürülemez ortak kültür mirasıdır; koruma tedbirleri eserin ömrünü ve bütünlüğünü güvence altına alır.',
+  },
+  {
+    grade: 6, course: 'social', code: 'SB.6.5.2', outcome: 'Üretim, dağıtım ve tüketim ağı ile girişimcilik', difficulty: 'orta',
+    q: 'Bir bölgede üretilen organik meyveler bozulmadan büyük şehirlere ulaştırılmak isteniyor. Girişimci bir kooperatifin soğutuculu taşıma araçlarına yatırım yapması ekonomi zincirinin doğrudan hangi halkasını güçlendirir?',
+    a: 'Dağıtım aşamasını',
+    distractors: ['Doğal kaynak çıkarımını', 'Vergi oranlarını', 'İthalat kotasını'],
+    explanation: 'Ürünün üreticiden tüketiciye kalite kaybı olmadan ulaştırılması süreci dağıtım aşamasıdır.',
+  },
+  {
+    grade: 7, course: 'social', code: 'SB.7.4.3', outcome: 'Bilimsel ve teknolojik gelişmelerin toplumsal etkisi', difficulty: 'orta',
+    q: 'Matbaanın icadı ve yaygınlaşmasıyla kitapların maliyeti düşmüş, bilgi çok daha geniş kitlelere hızlıca ulaşmıştır. Bu gelişmenin Avrupa’da özellikle hangi sürecin hızlanmasına doğrudan katkı sağladığı söylenebilir?',
+    a: 'Bilimsel düşüncenin yayılması ve okuryazarlık oranının artması',
+    distractors: ['Derebeylik sisteminin güçlenmesi', 'Deniz ticaret yollarının tamamen kapanması', 'El yazmacılığının tek iletişim aracı kalması'],
+    explanation: 'Basılı kaynakların çoğalması bilgiye erişimi demokratikleştirerek Rönesans ve bilimsel devrimi hızlandırmıştır.',
+  },
+  {
+    grade: 8, course: 'social', code: 'İTA.8.2.5', outcome: 'Amasya Genelgesi’nde millî irade vurgusunu çözümleme', difficulty: 'kolay',
+    q: 'Amasya Genelgesi’nde yer alan “Milletin bağımsızlığını yine milletin azim ve kararı kurtaracaktır.” maddesi, Kurtuluş Savaşı’nın hangi iki temel özelliğini ortaya koymuştur?',
+    a: 'Amacını (bağımsızlık) ve yöntemini (millet iradesi)',
+    distractors: ['Sadece ekonomik yardımlaşmayı ve dış borçları', 'Manda yönetimini kabul etme şartlarını', 'Saltanatın ömür boyu devam edeceğini'],
+    explanation: '“Milletin bağımsızlığı” amacı, “milletin azim ve kararı” ise kurtuluşun yöntemini (ulusal egemenliğe dayalı mücadeleyi) gösterir.',
+  },
+  {
+    grade: 8, course: 'social', code: 'İTA.8.3.6', outcome: 'Lozan Barış Antlaşması’nın diplomatik kazanımlarını yorumlama', difficulty: 'orta',
+    q: 'Lozan Barış Antlaşması ile kapitülasyonların tamamen kaldırılması ve Türkiye’nin bağımsız bir devlet olarak tanınması, yeni Türk devletine öncelikle hangi alanda tam özgürlük kazandırmıştır?',
+    a: 'Ekonomik ve siyasi bağımsızlık alanında',
+    distractors: ['Yalnızca sınır komşularıyla kültürel yarışmalarda', 'Sömürge toprakları elde etme konusunda', 'Osmanlı borçlarının tamamen silinmesinde'],
+    explanation: 'Kapitülasyonlar ekonomik ve hukuki bağımsızlığı kısıtlıyordu; kaldırılmasıyla tam egemenlik sağlanmıştır.',
+  },
+  {
+    grade: 8, course: 'social', code: 'İTA.8.4.1', outcome: 'Atatürk ilkelerini inkılaplarla ilişkilendirme', difficulty: 'kolay',
+    q: 'Saltanatın kaldırılması, Türkiye Büyük Millet Meclisinin açılması ve Cumhuriyet’in ilanı süreçlerinin tamamı halkın yönetimde söz sahibi olmasını sağlamıştır. Bu gelişmeler en doğrudan hangi Atatürk ilkesiyle örtüşür?',
+    a: 'Cumhuriyetçilik',
+    distractors: ['Devletçilik', 'Korumacılık', 'Yayılmacılık'],
+    explanation: 'Egemenliğin bir kişi veya zümreden alınıp millete verilmesi Cumhuriyetçilik ilkesinin temelidir.',
+  },
+
+  // ===================== DİN KÜLTÜRÜ (5–8) =====================
+  {
+    grade: 5, course: 'religion', code: 'DKAB.5.2.1', outcome: 'Ramazan ayı, oruç ve paylaşma bilinci', difficulty: 'kolay',
+    q: 'Ramazan ayında oruç tutan bir öğrenci gün boyu aç ve susuz kalarak yoksul insanların yaşadığı zorlukları daha derinden hissediyor. Bu durum oruç ibadetinin özellikle hangi toplumsal katkısını gösterir?',
+    a: 'Empati duygusunu geliştirip yardımlaşmayı artırmasını',
+    distractors: ['Yalnızca bireysel spor başarısını yükseltmesini', 'İnsanlar arasındaki iletişimi azaltmasını', 'Maddi kazancı sınırlamasını'],
+    explanation: 'Oruç, kişinin hem sabır eğitimini hem de ihtiyaç sahiplerinin hâlini anlayarak dayanışma göstermesini sağlar.',
+  },
+  {
+    grade: 6, course: 'religion', code: 'DKAB.6.2.3', outcome: 'Namaz ibadetinin bireysel ve toplumsal yönü', difficulty: 'orta',
+    q: 'Cuma ve bayram namazlarında farklı mesleklerden, yaşlardan ve gelir düzeylerinden insanların yan yana aynı safta durması İslam’ın hangi toplumsal ilkesini somut biçimde yaşatır?',
+    a: 'Eşitlik ve toplumsal kardeşlik ilkesini',
+    distractors: ['Meslek gruplarını ayırma ilkesini', 'Rekabeti artırma ilkesini', 'Yalnızca bireysel ibadetin üstünlüğünü'],
+    explanation: 'Toplu ibadetlerde statü farkı gözetilmeksizin aynı safta buluşmak insanlar arası eşitliği ve kaynaşmayı pekiştirir.',
+  },
+  {
+    grade: 7, course: 'religion', code: 'DKAB.7.2.2', outcome: 'Hac ibadetinin sembolleri ve evrensel mesajı', difficulty: 'orta',
+    q: 'Hac ibadeti sırasında dünyanın dört bir yanından gelen insanların aynı sade beyaz ihram kıyafetini giymesi aşağıdakilerden hangisini simgeler?',
+    a: 'Allah katında tüm insanların eşit olduğunu ve gösterişten uzaklaşmayı',
+    distractors: ['Sadece ticaret kurallarının belirlendiğini', 'Ülkeler arasındaki kültürel üstünlük sıralamasını', 'Yalnızca belirli bir milletin ibadet edebileceğini'],
+    explanation: 'İhram, dünyevi makam, servet ve statü farklarının geride bırakıldığını ve eşitliği temsil eder.',
+  },
+  {
+    grade: 8, course: 'religion', code: 'DKAB.8.4.1', outcome: 'Hz. Muhammed’in (s.a.v.) güvenilirliği ve örnekliği', difficulty: 'kolay',
+    q: 'Peygamberlik görevinden önce dahi Mekkelilerin değerli emanetlerini tereddüt etmeden Hz. Muhammed’e (s.a.v.) teslim etmeleri ve ona “El-Emin” demeleri, onun hangi kişilik özelliğini kanıtlar?',
+    a: 'Dürüstlüğü ve sözüne güvenilirliğini',
+    distractors: ['Sadece ticaret zenginliğini', 'Yalnızca akrabalarını koruduğunu', 'Askerî liderlik unvanını'],
+    explanation: 'El-Emin “en güvenilir” anlamına gelir; emanete sahip çıkması ve doğruluğu tüm toplumca kabul görmüştür.',
+  },
+  {
+    grade: 8, course: 'religion', code: 'DKAB.8.5.2', outcome: 'Kur’an’ın temel konularını ve kıssaların amacını anlama', difficulty: 'orta',
+    q: 'Kur’an-ı Kerim’de geçmiş peygamberlerin ve toplumların başından geçen olayların (kıssaların) anlatılmasının temel amacı aşağıdakilerden hangisidir?',
+    a: 'İnsanların bu olaylardan ders çıkarıp doğru yolu bulmasına rehberlik etmek',
+    distractors: ['Sadece kronolojik tarih cetveli oluşturmak', 'Coğrafi yer şekillerini detaylıca öğretmek', 'Edebiyat yarışmalarına konu sağlamak'],
+    explanation: 'Kur’an kıssaları tarih kitabı gibi bilgi sıralamak için değil, ibret alıp ahlaki ve imani olgunluğa ulaşmak için anlatılır.',
+  },
+
+  // ===================== İNGİLİZCE (5–8) =====================
+  {
+    grade: 5, course: 'english', code: 'ENG.5.2.R1', outcome: 'Mahalle haritası ve yön tarifi anlama', difficulty: 'kolay',
+    q: '“Go straight ahead, pass the bakery, and turn right at the traffic lights. The pharmacy is opposite the park.” Which place is across from the park?',
+    a: 'The pharmacy',
+    distractors: ['The bakery', 'The traffic lights', 'The bus stop'],
+    explanation: '“opposite the park” ifadesi parkın tam karşısında eczanenin (pharmacy) bulunduğunu söyler.',
+  },
+  {
+    grade: 6, course: 'english', code: 'ENG.6.4.R1', outcome: 'Hava durumu ve giysi/etkinlik eşleştirme', difficulty: 'orta',
+    q: 'Weather forecast for Sunday: “It will be freezing and snowy all day in Erzurum.” Which advice is suitable for someone visiting Erzurum on Sunday?',
+    a: 'Take your heavy coat, gloves, and boots',
+    distractors: ['Wear your sunglasses and flip-flops', 'Let’s go swimming in the open sea', 'Leave your jacket at home because it is hot'],
+    explanation: '“freezing and snowy” (dondurucu ve karlı) hava koşulları için kalın mont, eldiven ve bot gereklidir.',
+  },
+  {
+    grade: 7, course: 'english', code: 'ENG.7.3.R1', outcome: 'Biyografi metninden kronolojik çıkarım yapma', difficulty: 'orta',
+    q: 'Text: “Aziz Sancar studied medicine in Istanbul and later moved to the USA for research on DNA repair. In 2015, he won the Nobel Prize in Chemistry.” What happened AFTER he moved to the USA?',
+    a: 'He received the Nobel Prize in Chemistry',
+    distractors: ['He started primary school in Mardin', 'He graduated from medical school in Istanbul', 'He stopped working on DNA'],
+    explanation: 'Metne göre ABD’ye taşındıktan sonra (2015’te) Kimya dalında Nobel Ödülü almıştır.',
+  },
+  {
+    grade: 8, course: 'english', code: 'E8.3.R1', outcome: 'In the Kitchen: tarif adımlarını doğru sıralama', difficulty: 'orta',
+    q: 'Recipe: “First, peel and chop the potatoes. Next, heat some oil in a pan. After that, fry the potatoes for ten minutes. Finally, add a little salt before serving.” Which step happens JUST BEFORE frying the potatoes?',
+    a: 'Heating oil in a pan',
+    distractors: ['Adding salt', 'Serving the dish', 'Peeling the potatoes last'],
+    explanation: '“Next, heat some oil... After that, fry the potatoes” sıralamasına göre kızartmadan hemen önce yağ ısıtılır.',
+  },
+  {
+    grade: 8, course: 'english', code: 'E8.4.R1', outcome: 'On the Phone: telefon mesajının amacını anlama', difficulty: 'kolay',
+    q: 'Secretary: “Mr. Kaya is in a meeting right now. Would you like to leave a message?” Caller: “Yes, please tell him that the Science Fair starts at 10 a.m. tomorrow, and he needs to bring his ID card.” Why did the caller phone?',
+    a: 'To inform Mr. Kaya about the time and requirement for tomorrow’s event',
+    distractors: ['To cancel the Science Fair immediately', 'To ask for Mr. Kaya’s home phone number', 'To invite the secretary to a meeting'],
+    explanation: 'Arayan kişi yarınki Bilim Fuarı’nın saatini (10:00) ve kimlik kartı getirme gerekliliğini bildirmek için aramıştır.',
+  },
+  // ===================== EK DERİN MEB BECERİ TEMELLİ SORULAR (5–8 TÜM DERSLER) =====================
+  {
+    grade: 8, course: 'turkish', code: 'T.8.3.17', outcome: 'Ana düşünce ve yazarın tutumunu çözümleme', difficulty: 'zor',
+    q: '“Bir bölgenin su kaynaklarını korumak yalnızca kuraklık başladığında baraj kapaklarını kısmakla olmaz; tarımda damla sulamayı yaygınlaştırmak ve yağmur suyunu depolamak asıl kalıcı adımdır.” Yazarın bu parçada eleştirdiği yaklaşım nedir?',
+    a: 'Sorun ortaya çıktıktan sonra geçici önlemlerle yetinilmesi',
+    distractors: ['Tarımda modern sulama yöntemlerinin kullanılması', 'Yağmur suyunun depolanması', 'Su tasarrufunun eğitimle desteklenmesi'],
+    explanation: 'Yazar yalnızca kriz anında alınan geçici tedbirleri yetersiz bulup kalıcı, önleyici çözümleri savunmaktadır.',
+  },
+  {
+    grade: 8, course: 'turkish', code: 'T.8.4.18', outcome: 'Cümlede çatı ve anlam ilişkisini bağlamla çözme', difficulty: 'orta',
+    q: '“Sergi salonundaki tüm tablolar, açılış öncesinde görevliler tarafından özenle duvara asıldı.” cümlesinde eylemi yapan belli olmasına karşın yüklemin edilgen çatılı kurulmasının nedeni nedir?',
+    a: 'Yapılan işi (tabloların asılmasını) ve nesneyi ön plana çıkarmak',
+    distractors: ['Eylemin kendi kendine gerçekleştiğini göstermek', 'Cümlenin isim cümlesi olduğunu vurgulamak', 'Zaman zarfını yüklemle birleştirmek'],
+    explanation: 'Edilgen cümlelerde özne yerine yapılan iş ve etkilenen nesne (tüm tablolar) sözde özne olarak öne çıkarılır.',
+  },
+  {
+    grade: 8, course: 'turkish', code: 'T.8.3.14', outcome: 'Paragraf tamamlama ve mantıksal bağ kurma', difficulty: 'kolay',
+    q: '“Teknoloji hızla ilerledikçe mesleklerin gerektirdiği beceriler de değişmektedir. ----. Bu nedenle gençlerin yaşam boyu öğrenme alışkanlığı kazanması büyük önem taşır.” Boşluğa düşüncenin akışına göre hangi cümle getirilmelidir?',
+    a: 'Bugün öğrendiğimiz teknik bilgiler birkaç yıl içinde güncelliğini yitirebilmektedir',
+    distractors: ['Ancak eski mesleklerin tamamı hiçbir değişime uğramamıştır', 'Bu yüzden okul kütüphanelerine artık gerek kalmamıştır', 'Öğrenme süreci yalnızca ilkokul yıllarıyla sınırlıdır'],
+    explanation: 'Öncesinde becerilerin değiştiği, sonrasında yaşam boyu öğrenmenin gerektiği söylendiği için aradaki köprüyü bilginin güncelliğini yitirmesi kurar.',
+  },
+  {
+    grade: 8, course: 'science', code: 'F.8.3.2.1', outcome: 'Sıvı basıncını derinlik ve yoğunlukla yorumlama', difficulty: 'zor',
+    q: 'Aynı yükseklikte iki özdeş silindirden birinin tabanına kadar su, diğerinin tabanına kadar yoğunluğu sudan küçük zeytinyağı dolduruluyor. Kapların tabanlarındaki sıvı basınçları ve bunun nedeni hakkında hangisi doğrudur?',
+    a: 'Su dolu kabın tabanındaki basınç daha büyüktür; çünkü suyun yoğunluğu daha fazladır',
+    distractors: ['Zeytinyağı dolu kabın basıncı büyüktür; çünkü akışkanlığı azdır', 'Derinlikler eşit olduğundan iki kaptaki basınç kesinlikle eşittir', 'Kabın taban alanı basıncı iki katına çıkarır'],
+    explanation: 'Sıvı basıncı derinlik ve yoğunlukla doğru orantılıdır. Derinlikler eşitken yoğunluğu büyük olan su daha fazla basınç uygular.',
+  },
+  {
+    grade: 8, course: 'science', code: 'F.8.2.3.1', outcome: 'Mutasyon, modifikasyon ve adaptasyon ayrımı', difficulty: 'orta',
+    q: 'Kutup tilkilerinin kulaklarının küçük ve kürklerinin beyaz olması kalıtsaldır ve nesilden nesile aktarılır. Çuha çiçeğinin ise 15 °C’de kırmızı, 30 °C’de beyaz çiçek açması çevre şartı değişince geri dönebilir. Bu iki örnek sırasıyla hangi kavramlara aittir?',
+    a: 'Adaptasyon ve Modifikasyon',
+    distractors: ['Mutasyon ve Adaptasyon', 'Modifikasyon ve Doğal Seçilim', 'Mutasyon ve Modifikasyon'],
+    explanation: 'Kalıtsal yaşama/üreme uyumu adaptasyon; çevreye bağlı gen işleyişi değişimi (kalıtsal olmayan) modifikasyondur.',
+  },
+  {
+    grade: 8, course: 'science', code: 'F.8.4.2.1', outcome: 'Periyodik sistemde element sınıflandırması', difficulty: 'kolay',
+    q: 'Elektriği iyi ileten, tel ve levha hâline getirilebilen, oda sıcaklığında (civa hariç) katı hâlde bulunan X elementi periyodik tablonun genellikle hangi bölgesinde yer alır?',
+    a: 'Sol ve orta bölümde (Metaller sınıfında)',
+    distractors: ['En sağ sütunda (Soygazlar grubunda)', 'Sağ üst köşede (Ametaller içinde)', 'Yalnızca son yatay sırada'],
+    explanation: 'Parlaklık, iletkenlik ve şekillenebilirlik metallerin temel özelliğidir ve metaller periyodik tablonun sol/orta kısmındadır.',
+  },
+  {
+    grade: 8, course: 'social', code: 'İTA.8.2.3', outcome: 'Kuvayımilliye ve düzenli orduya geçiş gerekçesi', difficulty: 'orta',
+    q: 'İşgallere karşı halkın kendi imkânlarıyla kurduğu Kuvayımilliye birlikleri düşmanı oyalamış ancak tek merkezden yönetilemedikleri için işgalleri kesin olarak durduramamıştır. TBMM’nin bu durumu aşmak için attığı adım hangisidir?',
+    a: 'Emir-komuta zincirine bağlı düzenli orduyu kurmak',
+    distractors: ['Bütün savunma hatlarını boşaltmak', 'Yalnızca diplomatik telgraflarla yetinmek', 'Bölgesel cemiyetleri birbirinden ayırmak'],
+    explanation: 'Düzensiz birliklerin eş güdüm eksikliğini gidermek ve topyekûn taarruz gücü kazanmak için düzenli ordu kurulmuştur.',
+  },
+  {
+    grade: 8, course: 'social', code: 'İTA.8.3.2', outcome: 'Sakarya Meydan Muharebesi ve topyekûn seferberlik', difficulty: 'zor',
+    q: 'Kütahya-Eskişehir Savaşları sonrası ordunun ihtiyacını karşılamak amacıyla yayımlanan Tekâlif-i Milliye Emirleri ile halk elindeki giyecek, yiyecek ve taşıtların belirli bir kısmını orduya teslim etmiştir. Bu durum Türk milletinin hangi özelliğini doğrudan gösterir?',
+    a: 'Dayanışma ve bağımsızlık uğruna fedakârlık bilincini',
+    distractors: ['Yalnızca yabancı yardımlara bel bağladığını', 'Askerî mücadeleden geri çekildiğini', 'Ekonomik faaliyetleri tamamen durdurduğunu'],
+    explanation: 'Tekâlif-i Milliye Emirleri topyekûn savaşın ve milletin orduyla omuz omuza verdiği büyük fedakârlığın göstergesidir.',
+  },
+  {
+    grade: 8, course: 'social', code: 'İTA.8.5.1', outcome: 'Çok partili hayata geçiş ve demokratikleşme', difficulty: 'orta',
+    q: 'Atatürk döneminde Cumhuriyet’in ilanından sonra farklı görüşlerin mecliste temsil edilmesi ve hükûmetin denetlenebilmesi amacıyla yeni siyasi partilerin kurulması desteklenmiştir. Bu girişimlerin temel hedefi nedir?',
+    a: 'Demokratik yönetim kültürünü ve denetim mekanizmasını güçlendirmek',
+    distractors: ['Meclisi kapatıp tek kişilik yönetime dönmek', 'Seçim sistemini tamamen kaldırmak', 'Anayasayı yürürlükten kaldırmak'],
+    explanation: 'Çok partili hayat farklı düşüncelerin temsili ve yürütmenin demokratik yollarla denetlenmesi açısından zorunludur.',
+  },
+  {
+    grade: 8, course: 'social', code: 'İTA.8.6.1', outcome: 'Atatürk dönemi dış politika: Yurtta sulh cihanda sulh', difficulty: 'kolay',
+    q: 'Türkiye’nin Milletler Cemiyetine üye olması, Balkan Antantı ve Sadabat Paktı’nı imzalaması dış politikada öncelikle hangi ilkeyi benimsediğini kanıtlar?',
+    a: 'Barışçıl diplomasi ve bölgesel iş birliğini',
+    distractors: ['Saldırgan genişleme siyasetini', 'Uluslararası ilişkilerden tamamen kopmayı', 'Ekonomik kapıları kapatmayı'],
+    explanation: 'Bölgesel paktlar ve Milletler Cemiyeti üyeliği “Yurtta barış, dünyada barış” anlayışının somut adımlarıdır.',
+  },
+  {
+    grade: 8, course: 'religion', code: 'DKAB.8.1.3', outcome: 'Tevekkül anlayışını doğru yorumlama', difficulty: 'orta',
+    q: 'Bir çiftçi tarlasını zamanında sürüp tohumunu ekmiş, sulamasını ve bakımını eksiksiz yaptıktan sonra bereketli bir hasat için Allah’a dua etmiştir. Çiftçinin bu tutumu hangi kavramın doğru uygulamasıdır?',
+    a: 'Tevekkül (önce tedbir alıp çalışmak, sonra Allah’a güvenmek)',
+    distractors: ['Tembellik ve kadercilik', 'İsraf ve gösteriş', 'Emeksiz beklenti'],
+    explanation: 'Tevekkül, hiçbir çaba göstermeden beklemek değil; insanın üzerine düşen tüm sorumlulukları yerine getirdikten sonra sonucu Allah’a bırakmasıdır.',
+  },
+  {
+    grade: 8, course: 'religion', code: 'DKAB.8.2.2', outcome: 'Sadaka-i cariye ve kalıcı iyilik bilinci', difficulty: 'kolay',
+    q: 'Bir hayırseverin mahalledeki öğrencilerin yıllarca yararlanabileceği bir kütüphane yaptırması ve ağaç diktirmesi İslam’da hangi kavram kapsamında değerlendirilir?',
+    a: 'Sadaka-i cariye (kesintisiz devam eden iyilik)',
+    distractors: ['Fitre (fıtır sadakası)', 'Zekât nisabı', 'Kefaret'],
+    explanation: 'İnsanlar faydalandığı sürece sevabı devam eden okul, çeşme, kütüphane, ağaç gibi kalıcı eserlere sadaka-i cariye denir.',
+  },
+  {
+    grade: 8, course: 'religion', code: 'DKAB.8.3.2', outcome: 'Din ve hayat: adalet ve merhamet dengesi', difficulty: 'orta',
+    q: 'Hz. Ömer’in yönetim döneminde haklı ile haksız arasında makam veya zenginlik farkı gözetmeksizin karar verilmesi İslam ahlakının hangi temel ilkesini yansıtır?',
+    a: 'Hukuk önünde eşitlik ve adalet',
+    distractors: ['Akraba kayırmacılığı', 'Bireysel çıkar önceliği', 'Toplumsal ayrımcılık'],
+    explanation: 'Adalet, herkesin hakkını gözetmek ve ayrım yapmadan hakkaniyetle hüküm vermektir.',
+  },
+  {
+    grade: 8, course: 'religion', code: 'DKAB.8.5.1', outcome: 'Kur’an’da aklını kullanma ve araştırma vurgusu', difficulty: 'zor',
+    q: 'Kur’an-ı Kerim’de pek çok ayetin “Hâlâ düşünmez misiniz?”, “Akletmez misiniz?” ifadeleriyle bitmesi İslam’ın bilgiye ve bilime bakışı hakkında neyi ortaya koyar?',
+    a: 'İnsanın evreni gözlemlemesini, akıl yürütmesini ve sorgulamasını teşvik ettiğini',
+    distractors: ['Araştırma yapmanın yalnızca din bilginlerine ait olduğunu', 'Bilimsel gözlemlerin inançla çeliştiğini', 'Taklitçi düşüncenin akıl yürütmeden üstün olduğunu'],
+    explanation: 'Kur’an, körü körüne taklidi eleştirir; insanı doğayı incelemeye, düşünmeye ve aklını kullanmaya davet eder.',
+  },
+  {
+    grade: 8, course: 'religion', code: 'DKAB.8.4.2', outcome: 'Hz. Muhammed’in (s.a.v.) istişareye verdiği önem', difficulty: 'orta',
+    q: 'Hz. Muhammed’in (s.a.v.) Bedir ve Hendek gibi kritik savaşlar öncesinde arkadaşlarının görüşlerini alıp ortak karara göre hareket etmesi hangi ilkeye örnektir?',
+    a: 'İstişare (danışma ve ortak akıl)',
+    distractors: ['Tek başına buyruk verme', 'Sözden dönme', 'Eleştiriye kapalı olma'],
+    explanation: 'İstişare, önemli kararlarda konuyu bilenlerle fikir alışverişi yaparak en doğru sonuca ulaşmayı ifade eder.',
+  },
+  {
+    grade: 8, course: 'religion', code: 'DKAB.8.2.1', outcome: 'İnfak ve yardımlaşmada ölçü ve samimiyet', difficulty: 'kolay',
+    q: '“Sağ elin verdiğini sol el görmemelidir.” ilkesini benimseyen bir yardımsever davranışında aşağıdakilerden hangisini korumayı amaçlar?',
+    a: 'Yardım alan kişinin onurunu ve niyetin samimiyetini',
+    distractors: ['Yardım miktarını gizleyip azaltmayı', 'Basında reklam yapmayı', 'Yalnızca yakın çevresine yardım etmeyi'],
+    explanation: 'Gizli yardım gösterişten (riyadan) korur ve ihtiyaç sahibinin mahcup olmasını önler.',
+  },
+  {
+    grade: 8, course: 'english', code: 'E8.6.R1', outcome: 'Adventures: spor tercihleri ve güvenlik kuralları', difficulty: 'orta',
+    q: 'Cem loves water sports and wants to try something exciting this summer, but he is afraid of heights. Looking at the brochure: (A) Paragliding, (B) Skydiving, (C) Rafting, (D) Mountain climbing. Which sport should Cem choose?',
+    a: 'Rafting',
+    distractors: ['Paragliding', 'Skydiving', 'Mountain climbing'],
+    explanation: 'Cem su sporlarını seviyor ve yükseklikten korkuyor; tek su sporu olan Rafting iki koşula da uygundur.',
+  },
+  {
+    grade: 8, course: 'english', code: 'E8.7.R1', outcome: 'Tourism: tatil broşürü ve tercih eşleştirme', difficulty: 'zor',
+    q: 'Brochure: “Package 1: Ancient castle tour & museum ($120). Package 2: Beach hotel & diving ($180). Package 3: Ski resort ($200).” Leyla has $150 and prefers historical places. Which package fits her?',
+    a: 'Package 1',
+    distractors: ['Package 2', 'Package 3', 'Both Package 2 and 3'],
+    explanation: 'Leyla’nın bütçesi $150 ve tarihî yerleri tercih ediyor. Hem bütçeye ($120 ≤ $150) hem ilgi alanına uyan tek seçenek Package 1’dir.',
+  },
+  {
+    grade: 8, course: 'english', code: 'E8.8.R1', outcome: 'Chores: ev işleri dağılımı ve sorumluluk analizi', difficulty: 'kolay',
+    q: 'Mom: “Today we are cleaning the house together. Berk, please take out the rubbish and water the plants. Ece, vacuum the floor.” What is Berk NOT responsible for?',
+    a: 'Vacuuming the floor',
+    distractors: ['Taking out the rubbish', 'Watering the plants', 'Helping with the chores'],
+    explanation: 'Halıyı süpürme (vacuum the floor) görevi Berk’e değil Ece’ye verilmiştir.',
+  },
+  {
+    grade: 8, course: 'english', code: 'E8.9.R1', outcome: 'Science: bilimsel icatların etkisini okuma', difficulty: 'orta',
+    q: 'Article: “Before the invention of the compass, sailors could easily lose their way in cloudy weather. The compass made long ocean journeys much safer.” According to the text, what problem did the compass solve?',
+    a: 'Finding direction safely in bad weather at sea',
+    distractors: ['Making ships move faster without wind', 'Producing fresh water on ocean journeys', 'Predicting earthquakes on islands'],
+    explanation: 'Metinde pusulanın bulutlu havalarda denizcilerin yönünü bulmasını ve yolculukları daha güvenli hâle getirmesini sağladığı anlatılıyor.',
+  },
+  {
+    grade: 8, course: 'english', code: 'E8.10.R1', outcome: 'Natural Forces: doğal afetlere karşı önlem çıkarma', difficulty: 'orta',
+    q: 'Warning: “To reduce flood damage in cities, we shouldn’t build houses near riverbeds and we must keep street drains clean.” Which action helps prevent flood damage?',
+    a: 'Cleaning street drains regularly',
+    distractors: ['Building more houses near riverbeds', 'Cutting down trees on hillsides', 'Blocking water channels with waste'],
+    explanation: 'Uyarıda sel zararını azaltmak için dere yataklarına ev yapılmaması ve yağmur suyu kanallarının temiz tutulması önerilmektedir.',
+  },
+  // Grades 5-7 extra social/religion/english to guarantee rich 10-question pools everywhere
+  {
+    grade: 5, course: 'social', code: 'SB.5.4.1', outcome: 'Teknoloji kullanımı ve dijital güvenlik bilinci', difficulty: 'orta',
+    q: 'İnternette araştırma yapan Kerem bir sitede gördüğü sıra dışı haberi hemen paylaşmak yerine iki farklı resmî kaynaktan daha kontrol ediyor. Kerem’in bu davranışı hangi medya okuryazarlığı becerisini gösterir?',
+    a: 'Bilginin doğruluğunu farklı kaynaklardan teyit etme',
+    distractors: ['İlk karşılaştığı bilgiyi sorgulamadan yayma', 'Güvenlik şifrelerini herkesle paylaşma', 'Araştırma yapmaktan tamamen vazgeçme'],
+    explanation: 'Medya okuryazarlığı karşılaşılan bilginin kaynağını sorgulamayı ve başka güvenilir kaynaklarla doğrulamayı gerektirir.',
+  },
+  {
+    grade: 5, course: 'social', code: 'SB.5.6.1', outcome: 'Toplumsal dayanışma ve sivil katılım', difficulty: 'kolay',
+    q: 'Bir okulda öğrenciler kullanmadıkları temiz hikâye kitaplarını toplayarak köy okulundaki kütüphaneye gönderiyor. Bu etkinlik öğrencilere öncelikle hangi değeri kazandırır?',
+    a: 'Paylaşma ve toplumsal duyarlılık',
+    distractors: ['Bireysel rekabet', 'Tüketim savurganlığı', 'Kuralları ihlal etme'],
+    explanation: 'İhtiyaç sahipleriyle imkânları paylaşmak sosyal dayanışmayı ve empatiyi güçlendirir.',
+  },
+  {
+    grade: 5, course: 'religion', code: 'DKAB.5.4.1', outcome: 'Hz. İbrahim’in tevhid mücadelesinden çıkarım', difficulty: 'orta',
+    q: 'Hz. İbrahim’in yıldız, ay ve güneşin batıp kaybolduğunu görünce bunların yaratıcı olamayacağını akıl yoluyla fark etmesi, inanç konusunda hangi yaklaşımı öne çıkarır?',
+    a: 'Gözlem ve akıl yürütme ile gerçeğe ulaşmayı',
+    distractors: ['Çevredeki alışkanlıkları sorgulamadan kabul etmeyi', 'Doğa olaylarını incelemekten kaçınmayı', 'Yalnızca görünene tapınmayı'],
+    explanation: 'Hz. İbrahim evrendeki sonluluğu gözlemleyip aklını kullanarak tek ve sonsuz yaratıcıya ulaşmıştır.',
+  },
+  {
+    grade: 5, course: 'religion', code: 'DKAB.5.5.1', outcome: 'Mimari ve kültürel miras: cami bölümleri ve işlevi', difficulty: 'kolay',
+    q: 'Tarihî camilerimizin yalnızca ibadet yeri değil, aynı zamanda yanında kütüphane, aşevi ve okul bulunan külliyeler şeklinde tasarlanması hangi anlayışı gösterir?',
+    a: 'İbadet mekânlarının eğitim ve yardımlaşma ile hayatın merkezinde yer almasını',
+    distractors: ['Camilerin yalnızca bayramlarda açılmasını', 'Eğitim kurumlarının toplumdan tamamen ayrılmasını', 'Sanat ve mimariye önem verilmemesini'],
+    explanation: 'Külliye kültürü ibadet, eğitim ve sosyal yardımlaşmayı aynı yaşam alanında birleştirmiştir.',
+  },
+  {
+    grade: 5, course: 'english', code: 'ENG.5.5.R1', outcome: 'Sağlık durumuna göre tavsiye eşleştirme', difficulty: 'orta',
+    q: 'Doctor: “You have a sore throat and a high fever. Stay in bed, drink warm herbal tea, and take this medicine.” What should the patient do?',
+    a: 'Rest in bed and drink warm tea',
+    distractors: ['Drink cold water and go running', 'Go to the swimming pool today', 'Eat ice cream outside'],
+    explanation: 'Doktor boğaz ağrısı ve ateş için yatakta dinlenmeyi ve ılık bitki çayı içmeyi önermektedir.',
+  },
+  {
+    grade: 5, course: 'english', code: 'ENG.5.6.R1', outcome: 'Film türleri ve tercih analizi', difficulty: 'kolay',
+    q: 'Deniz likes funny stories and cartoons, but she hates scary films. Which movie poster fits Deniz best?',
+    a: '“Happy Penguins” (Animation & Comedy)',
+    distractors: ['“Dark Castle” (Horror)', '“Ghost Island” (Thriller)', '“Night Monsters” (Horror)'],
+    explanation: 'Deniz komedi ve çizgi filmleri seviyor, korku filmlerinden hoşlanmıyor; bu yüzden animasyon-komedi uygundur.',
+  },
+  {
+    grade: 6, course: 'religion', code: 'DKAB.6.3.1', outcome: 'Zararlı alışkanlıklara karşı hayır diyebilme', difficulty: 'orta',
+    q: 'Sağlığa zararlı bir alışkanlığı denemesi için baskı gören bir öğrencinin kararlı biçimde “Hayır, sağlığımı önemsiyorum.” demesi hangi beceriyi yansıtır?',
+    a: 'Akran baskısına karşı özdenetim ve doğru karar verme',
+    distractors: ['Gruba uymak için kendi değerlerinden vazgeçme', 'Sorumluluğu başkalarına yükleme', 'İletişim kurmaktan tamamen kaçınma'],
+    explanation: 'Zararlı davranışlara karşı net sınır koymak özdenetim ve bilinçli irade gerektirir.',
+  },
+  {
+    grade: 6, course: 'religion', code: 'DKAB.6.5.1', outcome: 'Vatan sevgisi ve ortak değerler bilinci', difficulty: 'kolay',
+    q: 'İslam kültür ve medeniyetinde kamu mallarını korumak, çevreye zarar vermemek ve vergisini dürüstçe ödemek hangi sorumlulukla ilişkilidir?',
+    a: 'Vatan sevgisi ve toplumsal kul hakkı bilinciyle',
+    distractors: ['Yalnızca bireysel kazanç amacıyla', 'Doğal kaynakları sınırsız tüketmeyle', 'Sadece tatil günlerine uymakla'],
+    explanation: 'Ortak yaşam alanlarını ve kamu kaynaklarını korumak tüm toplumun hakkına saygı göstermenin gereğidir.',
+  },
+  {
+    grade: 6, course: 'english', code: 'ENG.6.5.R1', outcome: 'Lunapark afişi: yaş ve ücret kısıtı çözme', difficulty: 'zor',
+    q: 'Poster: “Roller Coaster: Ages 12+, Ticket $8. Bumper Cars: All ages, Ticket $5.” Kerem is 11 years old and has $10. Which ride can he take?',
+    a: 'Only Bumper Cars',
+    distractors: ['Only Roller Coaster', 'Both rides together', 'Neither ride'],
+    explanation: 'Kerem 11 yaşında olduğu için 12+ sınırı olan Roller Coaster’a binemez; bütçesi ($10) Bumper Cars ($5) için yeterlidir.',
+  },
+  {
+    grade: 6, course: 'english', code: 'ENG.6.6.R1', outcome: 'Meslekler ve çalışma alanı eşleştirme', difficulty: 'kolay',
+    q: '“My uncle examines patients, checks their teeth, and gives advice on oral health.” What is his occupation?',
+    a: 'A dentist',
+    distractors: ['An architect', 'A mechanic', 'A pilot'],
+    explanation: 'Dişleri muayene eden ve ağız sağlığı tavsiyesi veren meslek diş hekimidir (dentist).',
+  },
+  {
+    grade: 7, course: 'religion', code: 'DKAB.7.4.1', outcome: 'Hz. Muhammed’in (s.a.v.) merhamet ve affediciliği', difficulty: 'orta',
+    q: 'Mekke’nin fethi sırasında geçmişte kendisine eziyet edenlere karşı intikam almak yerine “Bugün size kınama yok, hepiniz serbestsiniz.” demesi Hz. Muhammed’in (s.a.v.) hangi yönünü gösterir?',
+    a: 'Güçlü konumdayken bile affedici ve merhametli oluşunu',
+    distractors: ['Anlaşmalara uymadığını', 'Toplumdan uzaklaştığını', 'Adalet sistemini kapattığını'],
+    explanation: 'Güç elindeyken bağışlamak merhamet ve erdemli liderliğin en yüksek örneğidir.',
+  },
+  {
+    grade: 7, course: 'religion', code: 'DKAB.7.5.1', outcome: 'İslam düşüncesinde hoşgörü ve bir arada yaşama', difficulty: 'kolay',
+    q: 'Yunus Emre’nin “Yaratılanı severiz, Yaradan’dan ötürü” sözü toplumsal hayatta hangi yaklaşımı esas alır?',
+    a: 'İnsanlara ayrım yapmadan sevgi ve hoşgörüyle yaklaşmayı',
+    distractors: ['Sadece aynı görüşteki kişilerle konuşmayı', 'Farklı kültürleri dışlamayı', 'Doğadan uzak yaşamayı'],
+    explanation: 'Bu anlayış her insanı yaratılıştan değerli görerek sevgi, saygı ve hoşgörü temelinde bir arada yaşamayı öğütler.',
+  },
+  {
+    grade: 7, course: 'english', code: 'ENG.7.6.R1', outcome: 'Kutlama davetiyesinden yer-zaman-amaç çıkarma', difficulty: 'orta',
+    q: 'Invitation: “Join us for Elif’s Graduation Party! Date: June 14, 17:00. Place: Blue Garden Café. Please bring a small note for our memory book.” Why is the party held?',
+    a: 'To celebrate Elif’s graduation',
+    distractors: ['To celebrate a birthday', 'To open a new bookstore', 'To organize a sports camp'],
+    explanation: 'Davetiyede etkinliğin adı “Elif’s Graduation Party” (Mezuniyet Partisi) olarak belirtilmiştir.',
+  },
+  {
+    grade: 7, course: 'english', code: 'ENG.7.8.R1', outcome: 'Çevre koruma: geri dönüşüm ve enerji tasarrufu', difficulty: 'kolay',
+    q: 'Notice: “Turn off the lights when leaving the classroom and sort paper, plastic, and glass into separate bins.” What is the main purpose of this notice?',
+    a: 'Saving energy and promoting recycling at school',
+    distractors: ['Changing classroom seating plans', 'Ordering new computers for the lab', 'Cancelling art club meetings'],
+    explanation: 'Işıkları kapatmak enerji tasarrufunu, atıkları ayırmak ise geri dönüşümü amaçlamaktadır.',
+  },
+];
+
+export const courseBank: Question[] = entries.map(entry => ({
+  grade: entry.grade,
+  course: entry.course,
+  outcomeCode: entry.code,
+  outcome: entry.outcome,
+  subject: entry.outcome,
+  difficulty: entry.difficulty,
+  q: entry.q,
+  a: entry.a,
+  distractors: entry.distractors,
+  explanation: entry.explanation,
+  category: 'context' as const,
+  skillBased: true,
+}));

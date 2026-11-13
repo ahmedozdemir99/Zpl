@@ -43,6 +43,14 @@ export function pickQuestions(
   pick(question => question.category === 'context');
   pick(question => question.category === 'context');
   while (chosen.length < count && pick(() => true)) {}
+  if (chosen.length < count) {
+    for (const item of candidates) {
+      if (!chosen.includes(item)) {
+        chosen.push(item);
+        if (chosen.length >= count) break;
+      }
+    }
+  }
   return shuffle(chosen);
 }
 

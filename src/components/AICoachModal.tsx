@@ -3,9 +3,10 @@ import { Bot, Sparkles, X } from 'lucide-react';
 import type { Question } from '../types';
 import { coachTopics, localCoachQuestion, requestCoach } from '../utils/coach';
 import { sound } from '../utils/sound';
+import { Diagram } from './CompetitionControls';
 
 const field = 'mt-1 block w-full rounded-xl border border-white/15 bg-[#171f42] p-2.5 text-white';
-type CoachQuestion = Pick<Question, 'q' | 'a' | 'subject' | 'explanation' | 'source' | 'sourceUrl'>;
+type CoachQuestion = Pick<Question, 'q' | 'a' | 'subject' | 'explanation' | 'source' | 'sourceUrl' | 'figure'>;
 
 export function AICoachModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const [grade, setGrade] = useState('7');
@@ -105,6 +106,7 @@ export function AICoachModal({ isOpen, onClose }: { isOpen: boolean; onClose: ()
           <div className="space-y-3 rounded-2xl border border-purple-400/40 bg-purple-950/40 p-4 text-sm">
             <p className="font-bold text-cyan-200">{result.question.subject} · {result.local ? 'Soru havuzu' : 'Gemini'}</p>
             <p className="rounded-xl bg-[#0b1128] p-3 leading-relaxed">{result.question.q}</p>
+            <Diagram figure={result.question.figure} />
             <details key={result.question.q}>
               <summary className="cursor-pointer font-bold text-violet-200">Cevabı ve Çözümü Göster</summary>
               <p className="mt-2 text-emerald-200">Cevap <strong>{result.question.a}</strong></p>

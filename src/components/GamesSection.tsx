@@ -86,37 +86,60 @@ export const GamesSection: React.FC<GamesSectionProps> = ({ onGameFinish }) => {
 
   /* Sudoku cell input change */
   const handleSudokuChange = (r: number, c: number, valStr: string) => {
-    if (!sudokuData || sudokuData.puzzle[r][c] !== 0) return;
-    const val = parseInt(valStr.replace(/\D/g, ''), 10) || 0;
-    const num = val > 9 ? val % 10 : val;
+    if (!sudokuData || sudokuData.puzzle[r][c] !== 0 || !timerActive) return;
+    const digits = valStr.replace(/\D/g, '');
+    if (!digits) {
+      const copy = sudokuInputs.map(row => [...row]);
+      copy[r][c] = 0;
+      setSudokuInputs(copy);
+      return;
+    }
+    const last = Number(digits.slice(-1));
+    if (last < 1 || last > 9) return;
     const copy = sudokuInputs.map(row => [...row]);
-    copy[r][c] = num;
+    copy[r][c] = last;
     setSudokuInputs(copy);
   };
 
   const handleSudokuKeypad = (num: number) => {
-    if (!sudokuSelectedCell || !sudokuData) return;
+    if (!sudokuSelectedCell || !sudokuData || !timerActive) return;
     const [r, c] = sudokuSelectedCell;
     if (sudokuData.puzzle[r][c] !== 0) return;
     sound.playClick();
-    handleSudokuChange(r, c, String(num));
+    handleSudokuChange(r, c, num === 0 ? '' : String(num));
   };
 
   /* Kendoku cell input change */
   const handleKendokuChange = (r: number, c: number, valStr: string) => {
-    if (!/^[1-4]?$/.test(valStr)) return;
-    const validNum = Number(valStr);
+    if (!timerActive) return;
+    const digits = valStr.replace(/\D/g, '');
+    if (!digits) {
+      const copy = kendokuInputs.map(row => [...row]);
+      copy[r][c] = 0;
+      setKendokuInputs(copy);
+      return;
+    }
+    const last = Number(digits.slice(-1));
+    if (last < 1 || last > 4) return;
     const copy = kendokuInputs.map(row => [...row]);
-    copy[r][c] = validNum;
+    copy[r][c] = last;
     setKendokuInputs(copy);
   };
 
   /* Apartman cell input change */
   const handleApartmanChange = (r: number, c: number, valStr: string) => {
-    const num = parseInt(valStr.replace(/\D/g, ''), 10) || 0;
-    const validNum = num > 5 ? 5 : num;
+    if (!timerActive) return;
+    const digits = valStr.replace(/\D/g, '');
+    if (!digits) {
+      const copy = apartmanInputs.map(row => [...row]);
+      copy[r][c] = 0;
+      setApartmanInputs(copy);
+      return;
+    }
+    const last = Number(digits.slice(-1));
+    if (last < 1 || last > 5) return;
     const copy = apartmanInputs.map(row => [...row]);
-    copy[r][c] = validNum;
+    copy[r][c] = last;
     setApartmanInputs(copy);
   };
 
@@ -394,7 +417,6 @@ export const GamesSection: React.FC<GamesSectionProps> = ({ onGameFinish }) => {
                         key={`${r}-${c}`}
                         type="text"
                         inputMode="numeric"
-                        maxLength={1}
                         readOnly={isOriginal || !timerActive}
                         aria-label={`Satır ${r + 1}, sütun ${c + 1}`}
                         value={cellVal === 0 ? '' : cellVal}
@@ -414,12 +436,22 @@ export const GamesSection: React.FC<GamesSectionProps> = ({ onGameFinish }) => {
                 {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
                   <button
                     key={num}
+                    type="button"
+                    disabled={!timerActive}
                     onClick={() => handleSudokuKeypad(num)}
-                    className="w-9 h-9 rounded-xl bg-white/10 hover:bg-purple-600/50 text-white font-extrabold text-sm border border-white/10 transition-colors"
+                    className="w-9 h-9 rounded-xl bg-white/10 hover:bg-purple-600/50 text-white font-extrabold text-sm border border-white/10 transition-colors disabled:opacity-40"
                   >
                     {num}
                   </button>
                 ))}
+                <button
+                  type="button"
+                  disabled={!timerActive}
+                  onClick={() => handleSudokuKeypad(0)}
+                  className="px-3 h-9 rounded-xl bg-white/10 hover:bg-rose-600/40 text-slate-200 font-extrabold text-xs border border-white/10 transition-colors disabled:opacity-40"
+                >
+                  Sil
+                </button>
               </div>
             </div>
           )}
@@ -448,7 +480,6 @@ export const GamesSection: React.FC<GamesSectionProps> = ({ onGameFinish }) => {
                         <input
                           type="text"
                           inputMode="numeric"
-                          maxLength={1}
                           value={cellVal === 0 ? '' : cellVal}
                           readOnly={!timerActive}
                           aria-label={`Satır ${r + 1}, sütun ${c + 1}`}
@@ -481,7 +512,8 @@ export const GamesSection: React.FC<GamesSectionProps> = ({ onGameFinish }) => {
                         key={`${r}-${c}`}
                         type="text"
                         inputMode="numeric"
-                        maxLength={1}
+                        readOnly={!timerActive}
+                        aria-label={`Satır ${r + 1}, sütun ${c + 1}`}
                         value={cellVal === 0 ? '' : cellVal}
                         onChange={e => handleApartmanChange(r, c, e.target.value)}
                         className="w-full aspect-square bg-[#0e1530] border border-white/10 text-center font-extrabold text-base text-white rounded-lg outline-none focus:border-cyan-400"
@@ -541,24 +573,27 @@ export const GamesSection: React.FC<GamesSectionProps> = ({ onGameFinish }) => {
           {/* Action Buttons */}
           <div className="flex flex-wrap gap-2 pt-2">
             <button
+              type="button"
               onClick={checkAnswer}
               disabled={!timerActive}
               aria-disabled={!timerActive}
-              className="flex-1 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-600 text-slate-950 font-black text-xs shadow-lg shadow-amber-500/20 hover:brightness-110 active:scale-95 transition-all"
+              className="flex-1 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-600 text-slate-950 font-black text-xs shadow-lg shadow-amber-500/20 hover:brightness-110 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               ✓ Cevabı Kontrol Et
             </button>
             <button
+              type="button"
               onClick={handleAIHint}
               disabled={aiHintLoading || !timerActive}
-              className="flex items-center gap-1.5 px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-bold text-xs hover:bg-white/10"
+              className="flex items-center gap-1.5 px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-bold text-xs hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Sparkles className="w-4 h-4 text-cyan-400" />
               {aiHintLoading ? 'AI Düşünüyor...' : 'İpucu Ver'}
             </button>
             <button
+              type="button"
               onClick={() => startNewPuzzle(activeGame)}
-              className="px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-slate-300 font-bold text-xs hover:bg-white/10"
+              className="flex items-center gap-1.5 px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-slate-300 font-bold text-xs hover:bg-white/10"
             >
               <RotateCcw className="w-4 h-4" /> Yeni Bulmaca
             </button>

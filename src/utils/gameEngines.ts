@@ -21,7 +21,18 @@ export function makeSudoku(): SudokuPuzzle {
     Array.from({ length: 9 }, (_, c) => sudokuPattern(r, c) + 1)
   );
   const nums = shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9]);
-  const sol = base.map(row => row.map(cell => nums[cell - 1]));
+  const bandOrder = shuffle([0, 1, 2]);
+  const stackOrder = shuffle([0, 1, 2]);
+  const rowOrder = bandOrder.flatMap(b => shuffle([0, 1, 2]).map(r => b * 3 + r));
+  const colOrder = stackOrder.flatMap(s => shuffle([0, 1, 2]).map(c => s * 3 + c));
+  const transpose = Math.random() < 0.5;
+  const sol = Array.from({ length: 9 }, (_, r) =>
+    Array.from({ length: 9 }, (_, c) => {
+      const rr = rowOrder[transpose ? c : r];
+      const cc = colOrder[transpose ? r : c];
+      return nums[base[rr][cc] - 1];
+    })
+  );
   const puzzle = sol.map(r => [...r]);
 
   const cells = shuffle(Array.from({ length: 81 }, (_, i) => i));
@@ -42,14 +53,10 @@ export function makeSudoku(): SudokuPuzzle {
    2. KENDOKU (4x4)
 ========================================================= */
 function latin4(): number[][] {
-  const arr: number[][] = Array.from({ length: 4 }, () => []);
-  for (let r = 0; r < 4; r++) {
-    for (let c = 0; c < 4; c++) {
-      arr[r][c] = ((r + c) % 4) + 1;
-    }
-  }
+  const rowOrder = shuffle([0, 1, 2, 3]);
+  const colOrder = shuffle([0, 1, 2, 3]);
   const nums = shuffle([1, 2, 3, 4]);
-  return arr.map(row => row.map(x => nums[x - 1]));
+  return rowOrder.map(r => colOrder.map(c => nums[(r + c) % 4]));
 }
 
 export function makeKendoku(): KendokuPuzzle {
@@ -94,14 +101,10 @@ export function matchesCage(cage: KendokuCage, board: number[][]): boolean {
    3. APARTMAN / SKYSCRAPERS (5x5)
 ========================================================= */
 function latin5(): number[][] {
-  const a: number[][] = Array.from({ length: 5 }, () => []);
-  for (let r = 0; r < 5; r++) {
-    for (let c = 0; c < 5; c++) {
-      a[r][c] = ((r + c) % 5) + 1;
-    }
-  }
+  const rowOrder = shuffle([0, 1, 2, 3, 4]);
+  const colOrder = shuffle([0, 1, 2, 3, 4]);
   const nums = shuffle([1, 2, 3, 4, 5]);
-  return a.map(row => row.map(x => nums[x - 1]));
+  return rowOrder.map(r => colOrder.map(c => nums[(r + c) % 5]));
 }
 
 export function visible(arr: number[]): number {

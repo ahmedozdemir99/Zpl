@@ -2,10 +2,14 @@
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "zeka-pro-ligim",
   "main": "dist/cloudflare/worker.mjs",
-  "compatibility_date": "2026-11-13",
+  "compatibility_date": "2026-01-01",
   "workers_dev": true,
   "preview_urls": false,
+  "observability": { "enabled": true },
   "build": { "command": "npm run build:cloudflare" },
+  "vars": {
+    "REQUIRE_ACCESS": "false"
+  },
   "d1_databases": [
     {
       "binding": "DB",

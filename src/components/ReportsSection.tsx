@@ -9,8 +9,19 @@ interface ReportsSectionProps {
   onRestoreBackup: (jsonState: any) => void;
 }
 
+function pdfSafe(text: string): string {
+  const map: Record<string, string> = {
+    ç: 'c', Ç: 'C', ğ: 'g', Ğ: 'G', ı: 'i', İ: 'I',
+    ö: 'o', Ö: 'O', ş: 's', Ş: 'S', ü: 'u', Ü: 'U',
+    '—': '-', '–': '-', '·': '-',
+  };
+  return text.replace(/[çÇğĞıİöÖşŞüÜ—–·]/g, ch => map[ch] ?? ch);
+}
+
 export const ReportsSection: React.FC<ReportsSectionProps> = ({ state, onRestoreBackup }) => {
   const [filterQuery, setFilterQuery] = useState<string>('');
+  const [statusBanner, setStatusBanner] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
+  const [pendingBackup, setPendingBackup] = useState<any | null>(null);
 
   const handleDownloadPDF = () => {
     sound.playClick();
@@ -18,26 +29,31 @@ export const ReportsSection: React.FC<ReportsSectionProps> = ({ state, onRestore
       const doc = new jsPDF();
       let y = 15;
       doc.setFontSize(18);
-      doc.text('Zeka Akademisi - Mac ve Lig Raporu', 14, y);
+      doc.text('Zeka Pro Ligim - Mac ve Lig Raporu', 14, y);
       y += 10;
       doc.setFontSize(10);
-      doc.text(`Rapor Tarihi: ${new Date().toLocaleString('tr-TR')}`, 14, y);
-      doc.text(`Toplam Mac Sayisi: ${state.matches.length}`, 14, y + 6);
+      doc.text(pdfSafe(`Rapor Tarihi: ${new Date().toLocaleString('tr-TR')}`), 14, y);
+      doc.text(pdfSafe(`Toplam Puan: ${Math.round(state.score)} | Cozulen: ${state.solved} | Toplam Mac: ${state.matches.length}`), 14, y + 6);
       y += 15;
 
-      state.matches.forEach((m, idx) => {
-        if (y > 270) {
-          doc.addPage();
-          y = 15;
-        }
-        const textLine = `${idx + 1}. ${m.className || 'Sinif'} | ${m.p1} (${m.correct1}) vs ${m.p2} (${m.correct2}) | Kazanan: ${m.winner}`;
-        doc.text(textLine, 14, y);
-        y += 7;
-      });
+      if (state.matches.length === 0) {
+        doc.text('Henuz tamamlanmis lig maci bulunmuyor.', 14, y);
+      } else {
+        state.matches.forEach((m, idx) => {
+          if (y > 270) {
+            doc.addPage();
+            y = 15;
+          }
+          const textLine = pdfSafe(`${idx + 1}. ${m.className || 'Sinif'} | ${m.p1} (${m.correct1}) vs ${m.p2 || '-'} (${m.correct2}) | Kazanan: ${m.winner || 'Tamamlandi'}`);
+          doc.text(textLine, 14, y);
+          y += 7;
+        });
+      }
 
-      doc.save(`Zeka_Akademisi_Rapor_${new Date().toISOString().slice(0, 10)}.pdf`);
+      doc.save(`Zeka_Pro_Ligim_Rapor_${new Date().toISOString().slice(0, 10)}.pdf`);
+      setStatusBanner({ type: 'ok', text: 'PDF raporu indirildi.' });
     } catch {
-      alert('PDF indirilirken bir hata oluştu.');
+      setStatusBanner({ type: 'err', text: 'PDF indirilirken bir hata oluştu.' });
     }
   };
 
@@ -64,9 +80,10 @@ export const ReportsSection: React.FC<ReportsSectionProps> = ({ state, onRestore
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `Zeka_Akademisi_Mac_Sonuclari_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = `Zeka_Pro_Ligim_Mac_Sonuclari_${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
+    setStatusBanner({ type: 'ok', text: 'CSV dosyası indirildi.' });
   };
 
   const handleBackupJSON = () => {
@@ -76,9 +93,10 @@ export const ReportsSection: React.FC<ReportsSectionProps> = ({ state, onRestore
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `zeka_akademisi_yedek_${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `zeka_pro_ligim_yedek_${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
+    setStatusBanner({ type: 'ok', text: 'JSON yedeği indirildi.' });
   };
 
   const handleRestoreFile = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -90,20 +108,25 @@ export const ReportsSection: React.FC<ReportsSectionProps> = ({ state, onRestore
       try {
         const parsed = JSON.parse(evt.target?.result as string);
         if (parsed && Array.isArray(parsed.classes)) {
-          if (confirm('Mevcut tüm veriler bu yedek ile değiştirilecek. Onaylıyor musunuz?')) {
-            onRestoreBackup(parsed);
-            sound.playSuccess();
-            alert('Yedek başarıyla geri yüklendi.');
-          }
+          setPendingBackup(parsed);
+          setStatusBanner(null);
         } else {
-          alert('Geçersiz Zekâ Akademisi yedek dosyası.');
+          setStatusBanner({ type: 'err', text: 'Geçersiz Zekâ Pro Ligim yedek dosyası.' });
         }
       } catch {
-        alert('Yedek dosyası ayrıştırılamadı.');
+        setStatusBanner({ type: 'err', text: 'Yedek dosyası ayrıştırılamadı.' });
       }
     };
     reader.readAsText(file);
     e.target.value = '';
+  };
+
+  const confirmRestore = () => {
+    if (!pendingBackup) return;
+    onRestoreBackup(pendingBackup);
+    setPendingBackup(null);
+    sound.playSuccess();
+    setStatusBanner({ type: 'ok', text: 'Yedek başarıyla geri yüklendi.' });
   };
 
   const filteredHistory = state.history.filter(h => {
@@ -113,7 +136,9 @@ export const ReportsSection: React.FC<ReportsSectionProps> = ({ state, onRestore
       (h.className && h.className.toLowerCase().includes(q)) ||
       (h.p1 && h.p1.toLowerCase().includes(q)) ||
       (h.p2 && h.p2.toLowerCase().includes(q)) ||
-      (h.winner && h.winner.toLowerCase().includes(q))
+      (h.winner && h.winner.toLowerCase().includes(q)) ||
+      (h.type && h.type.toLowerCase().includes(q)) ||
+      (h.result && h.result.toLowerCase().includes(q))
     );
   });
 
@@ -129,6 +154,38 @@ export const ReportsSection: React.FC<ReportsSectionProps> = ({ state, onRestore
           Sınıf maçlarını PDF/CSV olarak dışarı aktarın veya tüm platform verilerini tek bir JSON dosyasında yedekleyin.
         </p>
       </div>
+
+      {statusBanner && (
+        <div
+          role={statusBanner.type === 'err' ? 'alert' : 'status'}
+          className={`flex items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-xs font-bold ${
+            statusBanner.type === 'ok'
+              ? 'border-emerald-500/30 bg-emerald-500/15 text-emerald-200'
+              : 'border-rose-500/30 bg-rose-500/15 text-rose-200'
+          }`}
+        >
+          <span>{statusBanner.text}</span>
+          <button type="button" onClick={() => setStatusBanner(null)} className="text-xs underline opacity-80 hover:opacity-100">
+            Kapat
+          </button>
+        </div>
+      )}
+
+      {pendingBackup && (
+        <div role="alert" className="rounded-2xl border border-amber-400/40 bg-amber-500/15 p-4 text-xs space-y-3">
+          <p className="font-bold text-amber-200">
+            Mevcut tüm veriler seçilen yedek dosyası ({pendingBackup.classes?.length ?? 0} sınıf, {pendingBackup.matches?.length ?? 0} maç) ile değiştirilecek. Onaylıyor musunuz?
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <button type="button" onClick={confirmRestore} className="px-4 py-2 rounded-xl bg-amber-400 text-slate-950 font-black hover:brightness-110">
+              Onayla ve Yükle
+            </button>
+            <button type="button" onClick={() => setPendingBackup(null)} className="px-4 py-2 rounded-xl bg-white/10 text-white font-bold hover:bg-white/20">
+              Vazgeç
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Export Action Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">

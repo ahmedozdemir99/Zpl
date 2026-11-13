@@ -5,9 +5,8 @@ import type { Attempt, Profile, StudentResult } from '../utils/student';
 import { courseName, defaults } from '../utils/competition';
 import { AnswerField, CompetitionSettings, Diagram, Timer } from './CompetitionControls';
 
-const legacyEndpoint = 'https://zeka-pro-ligi.ahmedkadiri99-33c.workers.dev';
 const cloudflare = import.meta.env.MODE === 'cloudflare';
-const hostedDuel = cloudflare || import.meta.env.MODE === 'sites';
+const hostedDuel = import.meta.env.VITE_LEGACY_DUEL !== 'true';
 const sessionKey = 'zeka-pro-ligim-online-duel';
 const button = 'rounded-xl bg-cyan-200 px-4 py-2.5 text-sm font-bold text-cyan-950 disabled:opacity-50';
 const secondary = 'rounded-xl border border-white/15 px-4 py-2.5 text-sm font-bold disabled:opacity-50';
@@ -64,7 +63,8 @@ async function request<T>(path: string, backend?: 'sites', token?: string, body?
   const headers = new Headers();
   if (body) headers.set('Content-Type', 'application/json');
   if (token) headers.set('X-Player-Token', token);
-  const response = await fetch((backend === 'sites' ? '' : legacyEndpoint) + path, {
+  const legacyUrl = 'https://zeka-pro-ligi.ahmedkadiri99-33c.workers.dev';
+  const response = await fetch((backend === 'sites' ? '' : legacyUrl) + path, {
     method: body ? 'POST' : 'GET', headers, body: body ? JSON.stringify(body) : undefined,
     cache: 'no-store',
     signal: cancel ? AbortSignal.any([cancel, AbortSignal.timeout(10000)]) : AbortSignal.timeout(10000),
@@ -173,9 +173,7 @@ export function OnlineDuel({ profile, onRecord }: { profile?: Profile | null; on
 
   function enter(join: boolean) {
     void run(async () => {
-      const legacyInvite = join && getDuelInviteCode() === code &&
-        new URLSearchParams(window.location.search).get('duel-v') !== '2';
-      const backend = hostedDuel && (cloudflare || !legacyInvite) ? 'sites' : undefined;
+      const backend: 'sites' | undefined = hostedDuel ? 'sites' : undefined;
       const result = await request<Session>(
         join ? '/duel/join' : '/duel/create', backend, undefined,
         join ? { name: name.trim(), code } : { name: name.trim(), grade, settings },
@@ -221,7 +219,22 @@ export function OnlineDuel({ profile, onRecord }: { profile?: Profile | null; on
       await navigator.clipboard.writeText(url.href);
       setInviteCopied(true);
     } catch {
-      setError('Bağlantı kopyalanamadı. Oda kodunu paylaşabilirsin.');
+      try {
+        const helper = document.createElement('textarea');
+        helper.value = url.href;
+        helper.setAttribute('readonly', '');
+        helper.style.position = 'fixed';
+        helper.style.opacity = '0';
+        document.body.appendChild(helper);
+        helper.select();
+        const copied = document.execCommand('copy');
+        document.body.removeChild(helper);
+        if (copied) {
+          setInviteCopied(true);
+          return;
+        }
+      } catch {}
+      setError(`Bağlantı kopyalanamadı. Oda kodunu (${room?.code || session.code}) doğrudan paylaşabilirsin.`);
     }
   }
 

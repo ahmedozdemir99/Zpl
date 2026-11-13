@@ -1,4 +1,5 @@
 import { contextQuestions } from './contextQuestions';
+import { mathOutcomeQuestions } from './mathOutcomes';
 import { sourceQuestions } from './sourceQuestions';
 import { Question } from '../types';
 
@@ -48,7 +49,7 @@ export const initialMatchQuestions: Question[] = [
   { grade: 8, difficulty: 'orta', subject: 'Eşitsizlik • Yaş sınırı', q: 'Bir etkinliğe katılmak için yaşın en az 12, 18\'den küçük olması gerekiyor. Kaç farklı tam sayı yaş uygundur?', a: '6', explanation: '12, 13, 14, 15, 16, 17 yaşları uygundur (6 farklı değer).' },
   { grade: 8, difficulty: 'zor', subject: 'Doğrusal ilişki • Su deposu', q: 'Bir depoda başlangıçta 180 litre su vardır. Her dakika sabit 6 litre su boşalıyor. Depoda 42 litre su kalması kaç dakika sürer?', a: '23', explanation: '180 - 6t = 42 => 6t = 138 => t = 23 dakika.' },
   { grade: 8, difficulty: 'zor', subject: 'Pisagor • Erişilebilirlik', q: 'Bir bina girişine yapılan rampanın yatay uzunluğu 15 m, yüksekliği 8 m\'dir. Rampanın eğimli uzunluğu kaç metredir?', a: '17', explanation: '8² + 15² = 64 + 225 = 289. √289 = 17 m (8-15-17 özel üçgeni).' },
-  { grade: 8, difficulty: 'zor', subject: 'Çok adımlı yüzde problemi', q: 'Bir ürün %20 indirimle 720 TL\'ye satılıyor. İndirimden önceki etiket fiyatı kaç TL\'dir?', a: '900', explanation: '%80\'i 720 TL ise %100\'ü (720 / 0.80) = 900 TL.' },
+  { grade: 8, difficulty: 'zor', subject: 'Çok adımlı yüzde problemi', q: 'Bir ürün %20 indirimle 720 TL\'ye satılıyor. İndirimden önceki fiyatı kaç TL\'dir?', a: '900', explanation: '%80\'i 720 TL ise %100\'ü (720 / 0.80) = 900 TL.' },
   { grade: 8, difficulty: 'zor', subject: 'Veri yorumlama • Satış grafiği', q: '1. mağaza 2 haftada sırasıyla 30 ve 35 satış yapıyor. 2. mağaza ise 40 ve 45 satış yapıyor. 2. mağaza toplam kaç adet fazla satış yapmıştır?', a: '20', explanation: '1. Mağaza Toplam = 65. 2. Mağaza Toplam = 85. Fark = 85 - 65 = 20.' },
 ];
 
@@ -65,60 +66,145 @@ export function buildSupplementaryQuestions(): Question[] {
   const out: Question[] = [];
   const patterns: Record<number, Array<(n: number) => [string, string, 'kolay' | 'orta' | 'zor', string, string]>> = {
     5: [
-      (n) => { let a = 12 + n, b = 8 + (n % 6); return [`Okul kermesinde ${a} TL'lik sandviç ve ${b} TL'lik içecek alan öğrenci toplam kaç TL öder?`, String(a + b), 'kolay', 'Ondalık ve doğal sayılar • Alışveriş', `Toplam tutar = ${a} + ${b} = ${a + b} TL.`]; },
-      (n) => { let a = 24 + n, b = 3 + (n % 5); return [`Bir geziye ${a} öğrenci katılıyor. Her minibüs ${b} öğrenci alırsa en az kaç minibüs gerekir?`, String(Math.ceil(a / b)), 'kolay', 'Doğal sayılar • Ulaşım planı', `${a} ÷ ${b} işleminin sonucu yukarı yuvarlanır. Artan öğrenci varsa bir minibüs daha gerekir. En az ${Math.ceil(a / b)} minibüs gerekir.`]; },
-      (n) => { let a = 5 + (n % 8); return [`Kare biçimindeki oyun alanının bir kenarı ${a} metredir. Çevresi kaç metredir?`, String(4 * a), 'kolay', 'Geometri • Çevre', `Karenin dört kenarı eşittir. Çevre = 4 × ${a} = ${4 * a} m.`]; },
-      (n) => { let a = 2 + (n % 5), b = 3 + (n % 4); return [`Bir tarifte ${a} kişiye ${b} bardak un kullanılıyor. Aynı ölçüyle ${a * 2} kişilik tarif için kaç bardak un gerekir?`, String(b * 2), 'orta', 'Kesir ve oran • Tarif', `Kişi sayısı iki katına çıkıyor. Un da iki katına çıkar. ${b} × 2 = ${b * 2} bardak.`]; },
-      (n) => { let a = 15 + n, b = 6 + (n % 5), c = 2 + (n % 4); return [`Bir öğrenci ${a} TL'lik defterden 2 tane ve tanesi ${b} TL olan kalemlerden ${c} tane alıyor. 100 TL verirse kaç TL para üstü alır?`, String(100 - (2 * a + c * b)), 'orta', 'Çok adımlı işlem • Bütçe', `Defterler 2 × ${a}, kalemler ${c} × ${b} TL tutar. Para üstü = 100 − (${2 * a} + ${c * b}) = ${100 - (2 * a + c * b)} TL.`]; },
-      (n) => { let a = 8 + (n % 9), b = 4 + (n % 6), c = 10 + (n % 12); return [`Dikdörtgen bir bahçenin kenarları ${a} m ve ${b} m'dir. Bahçenin ${c} m²'si çiçeklendirilirse çim için kaç m² kalır?`, String(a * b - c), 'orta', 'Alan • Planlama', `Bahçe ${a} × ${b} = ${a * b} m². Çim alanı ${a * b} − ${c} = ${a * b - c} m².`]; },
-      (n) => { let b = 1 + n % 4, a = (120 + 10 * n) * (b + 1); return [`Bir yürüyüş rotasının ${a} metresinin önce 1/${b + 1}'i tamamlanıyor. Kaç metre yol kalır?`, String(a - a / (b + 1)), 'zor', 'Kesir • Rota planlama', `Gidilen yol ${a} ÷ ${b + 1} = ${a / (b + 1)} m. Kalanı bulmak için bu uzunluğu toplamdan çıkar.`]; },
-      (n) => { let a = 2 + n % 5, b = 3 + n % 4, k = 5 + n % 6; return [`Bir sayı örüntüsü ${a}, ${a + b}, ${a + 2 * b}, ... biçiminde ilerliyor. Aynı kurala göre ${k}. terim kaçtır?`, String(a + (k - 1) * b), 'zor', 'Örüntü • Kural bulma', `Her adımda ${b} eklenir. ${k}. terime ulaşmak için ${k - 1} kez ekle. ${a} + ${k - 1} × ${b} = ${a + (k - 1) * b}.`]; },
-      (n) => { let a = 2 + (n % 3), b = 5 + (n % 4); return [`Bir su şişesinin önce ${a}/${b + 2}'si, sonra kalanının yarısı içiliyor. Başlangıçtaki suyun ne kadarı kalır? Sade kesir yaz.`, simpleFraction(b + 2 - a, 2 * (b + 2)), 'zor', 'Kesirler • Su tasarrufu', `İlk içişten sonra ${b + 2 - a}/${b + 2} kalır. Bunun yarısını almak için 1/2 ile çarp ve sadeleştir.`]; },
-      (n) => { let a = 6 + n % 7, b = 3 + n % 5; return [`Bir dikdörtgenin uzunluğu ${a} m, genişliği ${b} m'dir. Çevresi boyunca her 1 metrede bir işaret konursa kaç işaret gerekir?`, String(2 * (a + b)), 'zor', 'Geometri • Modelleme', `Çevre 2 × (${a} + ${b}) = ${2 * (a + b)} m. Kapalı çevrede her 1 metreye bir işaret düşer.`]; }
+      (n) => {
+        const notebook = 22 + n, pen = 9 + (n % 5), budget = 150;
+        const spent = 3 * notebook + 4 * pen;
+        return [`Kırtasiyeden tanesi ${notebook} TL olan defterden 3 tane ve tanesi ${pen} TL olan kalemden 4 tane alan öğrenci kasaya ${budget} TL verirse kaç TL para üstü alır?`, String(budget - spent), 'kolay', 'Doğal sayılar • Bütçe planlama', `Defterler 3 × ${notebook} = ${3 * notebook} TL, kalemler 4 × ${pen} = ${4 * pen} TL. Toplam ${spent} TL harcanır, para üstü ${budget - spent} TL olur.`];
+      },
+      (n) => {
+        const students = 42 + 3 * n, teachers = 4 + (n % 3), seats = 14 + (n % 4);
+        const total = students + teachers;
+        return [`Okul gezisine ${students} öğrenci ve ${teachers} öğretmen katılıyor. Her minibüs en fazla ${seats} yolcu alabildiğine göre herkesin oturabilmesi için en az kaç minibüs gerekir?`, String(Math.ceil(total / seats)), 'kolay', 'Doğal sayılar • Ulaşım optimizasyonu', `Toplam ${total} yolcu var. ${total} ÷ ${seats} bölümünde artan yolcular için ek bir araç gerekir; en az ${Math.ceil(total / seats)} minibüs gerekir.`];
+      },
+      (n) => {
+        const side = 6 + (n % 9);
+        return [`Kare biçimindeki bir panonun çevresine 3 sıra renkli şerit çekilecektir. Panonun bir kenarı ${side} cm olduğuna göre en az kaç cm şerit gerekir?`, String(12 * side), 'kolay', 'Geometri • Çevre modelleme', `Bir tur çevre 4 × ${side} = ${4 * side} cm. 3 sıra için 3 × ${4 * side} = ${12 * side} cm şerit gerekir.`];
+      },
+      (n) => {
+        const cap = 24 * (2 + (n % 4));
+        const used1 = cap / 3;
+        const used2 = (cap - used1) / 2;
+        return [`${cap} litrelik bir yağmur suyu deposunun önce 1/3’ü bahçe sulamada, ardından kalan suyun yarısı temizlikte kullanılıyor. Depoda kaç litre su kalır?`, String(cap - used1 - used2), 'orta', 'Kesirler • Su tasarrufu', `İlk kullanım ${used1} L (kalan ${cap - used1} L). İkinci kullanım kalanın yarısı ${used2} L. Son kalan ${cap - used1 - used2} L.`];
+      },
+      (n) => {
+        const w = 10 + n, h = 6 + (n % 5), inner = 12 + (n % 8);
+        return [`Kenarları ${w} m ve ${h} m olan dikdörtgen avlunun içine ${inner} m² alan kaplayan bir satranç köşesi yapılıyor. Avlunun kalan alanı kaç m²’dir?`, String(w * h - inner), 'orta', 'Alan • Avlu tasarımı', `Toplam alan ${w} × ${h} = ${w * h} m². Kalan alan ${w * h} − ${inner} = ${w * h - inner} m².`];
+      },
+      (n) => {
+        const a = 5 + (n % 4), step = 4 + (n % 5), k = 7 + (n % 5);
+        return [`Bir kütüphane rafına 1. gün ${a}, 2. gün ${a + step}, 3. gün ${a + 2 * step} kitap yerleştiriliyor. Bu örüntü aynı kuralla devam ederse ${k}. gün rafa kaç kitap yerleştirilir?`, String(a + (k - 1) * step), 'zor', 'Örüntü • Kural genelleme', `Her gün ${step} kitap artıyor. ${k}. gün = ${a} + (${k - 1} × ${step}) = ${a + (k - 1) * step} kitap.`];
+      },
+      (n) => {
+        const b = 5 + (n % 4), a = 2 + (n % 3);
+        return [`Bir su tankının önce ${a}/${b + 3}’ü, sonra kalanının yarısı kullanılıyor. Başlangıçtaki suyun hangi kesri kalır? Sade kesir yaz.`, simpleFraction(b + 3 - a, 2 * (b + 3)), 'zor', 'Kesirler • Çok adımlı çıkarım', `İlk kullanımdan sonra ${b + 3 - a}/${b + 3} kalır. Bunun yarısı (${b + 3 - a})/${2 * (b + 3)} olur.`];
+      },
+      (n) => {
+        const perim = 36 + 4 * n, shortSide = 5 + (n % 5);
+        const longSide = perim / 2 - shortSide;
+        return [`Çevresi ${perim} cm olan bir dikdörtgenin kısa kenarı ${shortSide} cm olduğuna göre bu dikdörtgenin alanı kaç cm²’dir?`, String(longSide * shortSide), 'zor', 'Geometri • Çevre-alan ilişkisi', `Yarı çevre ${perim / 2} cm, uzun kenar ${perim / 2} − ${shortSide} = ${longSide} cm. Alan = ${longSide} × ${shortSide} = ${longSide * shortSide} cm².`];
+      },
     ],
     6: [
-      (n) => { let a = 2 + n % 5; return [`Bir içecek için 3 ölçü meyve özüne ${a} ölçü su ekleniyor. 12 ölçü meyve özü kullanılırsa kaç ölçü su gerekir?`, String(4 * a), 'kolay', 'Oran • Tarif', `Meyve özü 3 ölçüden 12 ölçüye, yani 4 katına çıkıyor. Su da 4 × ${a} = ${4 * a} ölçü olur.`]; },
-      (n) => { let a = -8 + n % 5, b = 7 + n % 6; return [`Sabah sıcaklık ${a} °C, öğlen ${b} °C ölçülüyor. Sıcaklık kaç derece artmıştır?`, String(b - a), 'kolay', 'Tam sayılar • Hava durumu', `Son sıcaklıktan ilk sıcaklığı çıkar. ${b} − (${a}) = ${b - a} °C.`]; },
-      (n) => { let a = 3 + n % 6, b = 2 + n % 5; return [`Uzunluğu ${a} m, genişliği ${b} m olan dikdörtgen odanın alanı kaç m²'dir?`, String(a * b), 'kolay', 'Alan • Ev yaşamı', `Dikdörtgenin alanı uzunluk ile genişliğin çarpımıdır. ${a} × ${b} = ${a * b} m².`]; },
-      (n) => { let a = 4 + n % 5, d = 2 + n % 4; return [`Bir araç 100 km'de ${a} litre yakıt tüketiyor. ${100 + d * 50} km'de aynı tüketimle kaç litre yakıt harcar?`, String(a * (100 + d * 50) / 100), 'orta', 'Oran • Yakıt tüketimi', `Yol, 100 km’nin ${(100 + d * 50) / 100} katıdır. Yakıt miktarı da aynı oranda artar. ${a} × ${(100 + d * 50) / 100} = ${a * (100 + d * 50) / 100} litre.`]; },
-      (n) => { let a = 18 + n, b = 24 + n % 7, c = 3 * (25 + n % 5) - a - b; return [`Üç öğrencinin haftalık okuduğu sayfa sayıları ${a}, ${b} ve ${c}'dir. Üç öğrencinin ortalaması kaç sayfadır?`, String((a + b + c) / 3), 'orta', 'Veri analizi • Okuma', `Sayfaları topla ve öğrenci sayısına böl. (${a} + ${b} + ${c}) ÷ 3 = ${(a + b + c) / 3}.`]; },
-      (n) => { let a = 30 + n % 20, b = 15 + n % 10; return [`Bir etkinliğin biletleri yetişkinler için ${a} TL, öğrenciler için ${b} TL'dir. 3 yetişkin ve 4 öğrenci toplam kaç TL öder?`, String(3 * a + 4 * b), 'orta', 'Cebirsel düşünme • Bütçe', `Yetişkin biletleri 3 × ${a}, öğrenci biletleri 4 × ${b} TL tutar. Toplam ${3 * a + 4 * b} TL.`]; },
-      (n) => { let parts = 4 + n % 5, total = (parts + 5) * (30 + n % 10); return [`Bir sınıfta kızların erkeklere oranı ${parts}:5 ve toplam öğrenci sayısı ${total} ise erkek öğrenci sayısı kaçtır?`, String(total * 5 / (parts + 5)), 'zor', 'Oran • Sınıf verileri', `Toplam ${parts + 5} oran payı var. ${total} ÷ ${parts + 5} ile bir payı bul. Erkek öğrenci sayısı bunun 5 katıdır.`]; },
-      (n) => { let a = 2 + n % 4, b = 4 + n % 5; return [`Bir depodaki suyun önce 1/${a + 2}'si, sonra kalan suyun 1/${b}'i kullanılıyor. Başlangıçtaki suyun hangi kesri kalır? Sade kesir yaz.`, simpleFraction((a + 1) * (b - 1), (a + 2) * b), 'zor', 'Kesirler • Kaynak yönetimi', `İlk kullanımdan sonra ${a + 1}/${a + 2} kalır. İkinci kullanımda bunun ${b - 1}/${b} kadarı kalır. İki kesri çarpıp sadeleştir.`]; },
-      (n) => { let a = 4 + n % 6; return [`Bir haritada ${a} cm uzunluğundaki yol gerçekte ${a * 25} m'dir. Aynı ölçekte 7,2 cm'lik yol gerçekte kaç metredir?`, '180', 'zor', 'Ölçek • Harita okuryazarlığı', `Haritada 1 cm gerçekte 25 m’dir. 7,2 × 25 = 180 m.`]; },
-      (n) => { let a = 10 + n % 8, b = 14 + n % 9, c = 3 * (15 + n % 4) - a - b; return [`Üç günde sırasıyla ${a}, ${b} ve ${c} sayfa okuyan öğrenci, dördüncü gün ilk üç günün ortalaması kadar okuyor. Dört günde toplam kaç sayfa okur?`, String(a + b + c + (a + b + c) / 3), 'zor', 'Veri yorumlama • Okuma', `İlk üç günün toplamı ${a + b + c}. Ortalaması ${(a + b + c) / 3}. Dördüncü günün sayısını ilk üç günün toplamına ekle.`]; }
+      (n) => {
+        const s1 = -6 - (n % 5), s2 = 9 + n;
+        return [`Bir soğuk hava deposunda sabah ${s1} °C ölçülen sıcaklık, öğleye kadar eşit aralıklarla artarak ${s2} °C’ye ulaşıyor. Sıcaklık toplam kaç derece yükselmiştir?`, String(s2 - s1), 'kolay', 'Tam sayılar • Sıcaklık analizi', `Sıcaklık artışı = ${s2} − (${s1}) = ${s2 - s1} °C.`];
+      },
+      (n) => {
+        const w = 5 + (n % 6), h = 4 + (n % 5);
+        return [`Tabanı ${w} m ve ${h} m olan dikdörtgen bir salonun yarısına halı seriliyor. Halı serilmeyen alan kaç m²’dir?`, String((w * h) / 2), 'kolay', 'Alan • Modelleme', `Toplam alan ${w} × ${h} = ${w * h} m², yarısı ${(w * h) / 2} m².`];
+      },
+      (n) => {
+        const rate = 5 + (n % 4), halfHours = 3 + (n % 3);
+        const km = 100 + halfHours * 50;
+        return [`Bir otomobil 100 km’de ortalama ${rate} litre yakıt tüketiyor. Aynı koşullarda ${km} km’lik bir şehirler arası yolda kaç litre yakıt harcar?`, String((rate * km) / 100).replace('.', ','), 'orta', 'Oran • Yakıt verimliliği', `${km} km, 100 km’nin ${km / 100} katıdır. Yakıt = ${rate} × ${km / 100} = ${String((rate * km) / 100).replace('.', ',')} L.`];
+      },
+      (n) => {
+        const avg = 22 + n, d1 = avg - 4, d2 = avg + 5, d3 = avg - 1;
+        return [`Dört günde ortalama ${avg} sayfa kitap okumayı hedefleyen bir öğrenci ilk üç günde ${d1}, ${d2} ve ${d3} sayfa okumuştur. Hedefini yakalamak için dördüncü gün tam olarak kaç sayfa okumalıdır?`, String(4 * avg - (d1 + d2 + d3)), 'orta', 'Veri analizi • Ortalama hedefi', `4 gün toplamı 4 × ${avg} = ${4 * avg} olmalı. İlk üç gün ${d1 + d2 + d3} olduğundan 4. gün ${4 * avg - (d1 + d2 + d3)} sayfa gerekir.`];
+      },
+      (n) => {
+        const a = 2 + (n % 4), b = 3 + (n % 5);
+        return [`Bir yakıt deposunun önce 1/${a + 2}’si, sonra kalan yakıtın 1/${b + 1}’i tüketiliyor. Depoda başlangıçtaki yakıtın hangi kesri kalır? Sade kesir yaz.`, simpleFraction((a + 1) * b, (a + 2) * (b + 1)), 'zor', 'Kesirler • Kaynak yönetimi', `İlk aşamada ${a + 1}/${a + 2} kalır; ardından kalanın ${b}/${b + 1}’i kalır. İki kesrin çarpımı sadeleştirilir.`];
+      },
+      (n) => {
+        const partsA = 3 + (n % 4), partsB = 5, mult = 20 + 2 * (n % 6);
+        const total = (partsA + partsB) * mult;
+        return [`Bir turnuvaya katılan kız öğrencilerin erkek öğrencilere oranı ${partsA}:${partsB} ve toplam sporcu sayısı ${total}’dir. Kız ve erkek sporcu sayıları arasındaki fark kaçtır?`, String(Math.abs(partsB - partsA) * mult), 'zor', 'Oran • Çok adımlı karşılaştırma', `Toplam ${partsA + partsB} kat = ${total} => 1 kat = ${mult}. Fark = |${partsB} − ${partsA}| × ${mult} = ${Math.abs(partsB - partsA) * mult}.`];
+      },
+      (n) => {
+        const scale = 25 + 5 * (n % 4), cm = 6.4;
+        return [`1 cm’nin gerçekte ${scale} m’ye karşılık geldiği bir yürüyüş haritasında 6,4 cm ölçülen parkurun gerçek uzunluğu kaç metredir?`, String(Math.round(scale * cm * 10) / 10).replace('.', ','), 'zor', 'Ölçek • Harita okuryazarlığı', `6,4 × ${scale} = ${String(Math.round(scale * cm * 10) / 10).replace('.', ',')} m.`];
+      },
     ],
     7: [
-      (n) => { let a = 200 + 20 * n, p = 10 + 5 * (n % 4); return [`Etiketi ${a} TL olan bir ürüne %${p} indirim uygulanıyor. İndirimli fiyat kaç TL'dir?`, String(a * (100 - p) / 100), 'kolay', 'Yüzdeler • Alışveriş', `Fiyatın %${100 - p}’si ödenir. ${a} × ${100 - p} ÷ 100 = ${a * (100 - p) / 100} TL.`]; },
-      (n) => { let a = 0.4 + n / 10, b = 0.25 + (n % 5) / 100; return [`Bir öğrenci sabah ${a.toFixed(2)} km, akşam ${b.toFixed(2)} km yürüyor. Toplam kaç km yürümüştür?`, (a + b).toFixed(2).replace('.', ','), 'kolay', 'Rasyonel sayılar • Sağlık', `Ondalık basamakları hizala ve topla. ${a.toFixed(2).replace('.', ',')} + ${b.toFixed(2).replace('.', ',')} = ${(a + b).toFixed(2).replace('.', ',')} km.`]; },
-      (n) => { let a = 45 + n % 40; return [`Bir kavşakta komşu bütünler açılardan biri ${a}° ise diğer açı kaç derecedir?`, String(180 - a), 'kolay', 'Açılar • Trafik güvenliği', `Bütünler açıların toplamı 180°’dir. 180 − ${a} = ${180 - a}°.`]; },
-      (n) => { let a = 3 + n % 5, b = 2 + n % 4, c = 120 + n * 10; return [`${a} makine ${b} saatte ${c} parça üretiyor. Aynı hızla ${a * 2} makine aynı sürede kaç parça üretir?`, String(c * 2), 'orta', 'Orantı • Üretim', `Makine sayısı iki katına çıktığı için aynı sürede parça sayısı iki katına çıkar. ${c} × 2 = ${c * 2}.`]; },
-      (n) => { let a = 50 + n * 2, b = 8 + n % 7, c = a + b * (5 + n); return [`Bir telefon paketinde ${a} TL sabit ücret ve GB başına ${b} TL ücret var. Fatura ${c} TL ise kaç GB kullanılmıştır?`, String((c - a) / b), 'orta', 'Cebir • Dijital yaşam', `Önce sabit ücreti çıkar. Kalan ${c - a} TL’yi GB başına ücret olan ${b} TL’ye böl.`]; },
-      (n) => { let r = 3 + n % 9; return [`Yarıçapı ${r} cm olan çemberin çevresini π=3 alarak yaklaşık hesaplayınız. Çevre kaç cm olur?`, String(6 * r), 'orta', 'Çember • Tasarım', `Çevre 2 × π × yarıçap ile hesaplanır. 2 × 3 × ${r} = ${6 * r} cm.`]; },
-      (n) => { let a = 300 + 50 * n; return [`Bir ürünün fiyatı önce %10 artırılıyor, sonra yeni fiyat üzerinden %10 azaltılıyor. Başlangıç fiyatı ${a} TL ise son fiyat kaç TL olur?`, String(a * 99 / 100), 'zor', 'Yüzde değişimi • Finansal okuryazarlık', `İlk artıştan sonra fiyat ${a} × 1,10 olur. İndirimli fiyatı bulmak için bunu 0,90 ile çarp. Toplam çarpan 0,99’dur.`]; },
-      (n) => { let a = 15 + n % 20, b = 8 + n % 9, total = a + b * 10; return [`Bir taksi ${a} TL açılış ücreti ve kilometre başına ${b} TL alıyor. Yolculuk ${total} TL tuttuğuna göre kaç km gidilmiştir?`, String((total - a) / b), 'zor', 'Denklem • Ulaşım', `Toplam ücretten ${a} TL açılış ücretini çıkar. Kalan ${total - a} TL’yi kilometre başına ${b} TL’ye böl.`]; },
-      (n) => { let x = 5 + n % 8; return [`Dikdörtgen arsanın uzun kenarı kısa kenarının 2 katından 1 m fazladır. Kısa kenar ${x} m ise alan kaç m²'dir?`, String(x * (2 * x + 1)), 'zor', 'Cebir ve alan • Arazi planı', `Uzun kenar 2 × ${x} + 1 = ${2 * x + 1} m. Alan, kısa ve uzun kenarın çarpımıdır.`]; },
-      (n) => { let a = 3 + n % 5, b = 4 + n % 6, c = 5 + n % 4; return [`Bir torbada ${a} kırmızı, ${b} mavi ve ${c} sarı kart var. Rastgele seçilen kartın sarı olmama olasılığı nedir? Sade kesir yaz.`, simpleFraction(a + b, a + b + c), 'zor', 'Olasılık • Oyun tasarımı', `Sarı olmayan ${a + b} kartı toplam ${a + b + c} karta böl. Kesri sadeleştir.`]; }
+      (n) => {
+        const price = 300 + 25 * n, disc = 20;
+        return [`Etiket fiyatı ${price} TL olan bir spor ayakkabıya önce %${disc} indirim uygulanıyor, ardından kasada indirimli fiyat üzerinden 15 TL daha düşülüyor. Müşteri kaç TL öder?`, String(price * 0.8 - 15), 'kolay', 'Yüzdeler • Alışveriş senaryosu', `%20 indirimle ${price * 0.8} TL olur, 15 TL daha düşülünce ${price * 0.8 - 15} TL ödenir.`];
+      },
+      (n) => {
+        const a = 45 + (n % 35);
+        return [`Bir kavşakta komşu bütünler iki açıdan biri diğerinden ${2 * a - 180 >= 0 ? 2 * a - 180 : 180 - 2 * a}° farklıdır. Açılardan biri ${a}° olduğuna göre büyük açı kaç derecedir?`, String(Math.max(a, 180 - a)), 'kolay', 'Doğrular ve açılar • Muhakeme', `Bütünler açılar toplamı 180° olduğundan diğer açı 180 − ${a} = ${180 - a}° olur. Büyük olan ${Math.max(a, 180 - a)}°dir.`];
+      },
+      (n) => {
+        const machines = 4 + (n % 3), pieces = machines * (30 + 5 * n);
+        return [`${machines} özdeş yazıcı 2 saatte toplam ${pieces} sayfa basıyor. Aynı hızdaki ${machines + 2} yazıcı 2 saatte kaç sayfa basar?`, String(((pieces / machines) * (machines + 2))), 'orta', 'Orantı • Üretim kapasitesi', `1 yazıcı 2 saatte ${pieces / machines} sayfa basar. ${machines + 2} yazıcı = ${(pieces / machines) * (machines + 2)} sayfa.`];
+      },
+      (n) => {
+        const fixed = 40 + 5 * n, perGb = 12, gbs = 5 + (n % 6), total = fixed + perGb * gbs;
+        return [`Bir internet tarifesinde ${fixed} TL sabit ücret ve kullanılan her GB için ${perGb} TL alınmaktadır. Ay sonunda ${total} TL fatura ödeyen kullanıcı kaç GB internet kullanmıştır?`, String(gbs), 'orta', 'Denklem • Tarife analizi', `${fixed} + ${perGb}x = ${total} => ${perGb}x = ${total - fixed} => x = ${gbs} GB.`];
+      },
+      (n) => {
+        const base = 400 + 100 * (n % 5);
+        return [`Fiyatı ${base} TL olan bir ürüne önce %20 zam yapılıyor, sonra zamlı fiyat üzerinden %25 indirim uygulanıyor. Ürünün son fiyatı kaç TL olur?`, String(base * 1.2 * 0.75), 'zor', 'Yüzde değişimi • Ardışık işlem', `Zamlı fiyat ${base * 1.2} TL. %25 indirim sonrası ${base * 1.2 * 0.75} TL (toplamda 0,90 katı).`];
+      },
+      (n) => {
+        const shortSide = 6 + (n % 7);
+        const longSide = 2 * shortSide + 5;
+        return [`Dikdörtgen bir bahçenin uzun kenarı kısa kenarının 2 katından 5 m fazladır. Kısa kenar ${shortSide} m olduğuna göre bahçenin alanı kaç m²’dir?`, String(shortSide * longSide), 'zor', 'Cebir ve alan • Modelleme', `Uzun kenar = 2 × ${shortSide} + 5 = ${longSide} m. Alan = ${shortSide} × ${longSide} = ${shortSide * longSide} m².`];
+      },
+      (n) => {
+        const r = 3 + (n % 5), b = 4 + (n % 4), y = 5 + (n % 3);
+        return [`Bir kutuda ${r} kırmızı, ${b} mavi ve ${y} sarı kart var. Rastgele çekilen bir kartın sarı OLMAMA olasılığı nedir? Sade kesir yaz.`, simpleFraction(r + b, r + b + y), 'zor', 'Olasılık • Durum uzayı', `Sarı olmayan ${r + b} kartı toplam ${r + b + y} karta böl ve sadeleştir.`];
+      },
     ],
     8: [
-      (n) => { let a = 3 + n % 5; return [`Bir dosyanın boyutu 2 üzeri ${a} MB'tır. Dosyanın boyutu kaç MB'tır?`, String(2 ** a), 'kolay', 'Üslü ifadeler • Dijital veri', `2 sayısını ${a} kez çarpan olarak yaz. Sonuç ${2 ** a} MB.`]; },
-      (n) => { let a = 81 + 9 * (n % 8); return [`Alanı ${a * a} m² olan kare meydanın bir kenarı kaç metredir?`, String(a), 'kolay', 'Kareköklü ifadeler • Alan', `Karenin alanı kenarının karesidir. √${a * a} = ${a} m.`]; },
-      (n) => { let a = 25 + n * 3; return [`Aynı fiyatlı 4 bilet ve 20 TL hizmet bedeli toplam ${4 * a + 20} TL tutuyor. Bir bilet kaç TL'dir?`, String(a), 'kolay', 'Denklem • Bütçe', `Toplamdan 20 TL hizmet bedelini çıkar. Kalan ${4 * a} TL’yi dört bilete böl.`]; },
-      (n) => { let a = 6 + n % 10, b = 2 + n % 5; return [`Bir rampada yatay ilerleme ${a * 2} m, yükseklik artışı ${b} m'dir. Eğim (yükseklik/yatay) kaçtır? Sade kesir yaz.`, simpleFraction(b, a * 2), 'orta', 'Eğim • Erişilebilir tasarım', `Eğim yükseklik / yatay uzaklıktır. ${b}/${a * 2} kesrini sadeleştir.`]; },
-      (n) => { let p = 2 + (n % 7); return [`Bir üretim bandındaki ürünlerin %${p}’si kusurludur. Rastgele seçilen ${100 * (n % 3 + 2)} üründe beklenen kusurlu ürün sayısı kaçtır?`, String(p * (100 * (n % 3 + 2)) / 100), 'orta', 'Yüzde • Kalite kontrol', `Ürün sayısını yüzde oranıyla çarp. ${100 * (n % 3 + 2)} × ${p} ÷ 100.`]; },
-      (n) => { let a = 11 + n % 5, b = 18 + n % 5; return [`Bir etkinlik için yaş en az ${a}, ${b}'den küçük olmalıdır. Tam sayı yaşları dikkate alındığında kaç farklı yaş uygundur?`, String(b - a), 'orta', 'Eşitsizlik • Etkinlik kuralları', `${a} yaş dâhil, ${b} yaş hariç. Uygun tam sayıların sayısı ${b} − ${a} = ${b - a}.`]; },
-      (n) => { let b = 5 + n % 7, c = 30 + n % 20, a = c + b * (15 + n); return [`Bir depoda başlangıçta ${a} litre su vardır. Her dakika ${b} litre su boşalıyor. Depoda ${c} litre kalması kaç dakika sürer?`, String((a - c) / b), 'zor', 'Doğrusal ilişki • Su yönetimi', `Depodan ${a} − ${c} = ${a - c} litre boşalmalı. Bu miktarı dakikada boşalan ${b} litreye böl.`]; },
-      (n) => { let a = 3 * (n + 1), b = 4 * (n + 1); return [`Bir dik üçgende dik kenarlar ${a} m ve ${b} m'dir. Hipotenüs uzunluğu kaç metredir?`, String(Math.sqrt(a * a + b * b)), 'zor', 'Pisagor • İnşaat', `Pisagor bağıntısına göre hipotenüs √(${a}² + ${b}²) = √${a * a + b * b} = ${Math.sqrt(a * a + b * b)} m.`]; },
-      (n) => { let price = 600 + 20 * n; return [`Bir ürün %20 indirimle ${price * 0.8} TL'ye satılıyor. İndirimden önceki fiyatı kaç TL'dir?`, String(price), 'zor', 'Yüzde • Tüketici matematiği', `Ödenen ${price * 0.8} TL, etiket fiyatının %80’idir. Etiket fiyatı = ${price * 0.8} ÷ 0,80 = ${price} TL.`]; },
-      (n) => { let a = 20 + n % 20, b = 30 + n % 15, c = 25 + n % 18, d = 35 + n % 20; return [`İki mağazanın iki haftalık satışları sırasıyla A: ${a} ve ${b}, B: ${c} ve ${d} adettir. İki haftada iki mağazanın toplam satış adetleri arasındaki fark kaçtır?`, String(Math.abs((c + d) - (a + b))), 'zor', 'Veri yorumlama • Karşılaştırma', `A mağazası ${a + b}, B mağazası ${c + d} ürün satmıştır. Büyük toplamdan küçük toplamı çıkar.`]; }
-    ]
+      (n) => {
+        const exp = 3 + (n % 5);
+        return [`Bir sunucudaki 2^${exp} MB boyutundaki 4 özdeş dosya tek bir klasörde birleştirilirse toplam boyut kaç MB olur?`, String(4 * (2 ** exp)), 'kolay', 'Üslü ifadeler • Veri kapasitesi', `4 = 2² olduğundan toplam boyut 2² × 2^${exp} = 2^${exp + 2} = ${4 * (2 ** exp)} MB.`];
+      },
+      (n) => {
+        const side = 11 + n;
+        return [`Alanı ${side * side} m² olan kare şeklindeki bir bahçenin çevresine 2 sıra tel çekilecektir. Kaç metre tel gerekir?`, String(8 * side), 'kolay', 'Kareköklü ifadeler • Çevre-alan', `Bir kenar √${side * side} = ${side} m. 2 sıra çevre = 2 × 4 × ${side} = ${8 * side} m.`];
+      },
+      (n) => {
+        const h = 2 + (n % 4), w = h * (3 + (n % 4));
+        return [`Bir engelli rampasında dikey yükseklik ${h} m, yatay uzunluk ${w} m’dir. Rampanın eğimi yüzde cinsinden veya kesir olarak kaçtır? (Sade kesir yaz)`, simpleFraction(h, w), 'orta', 'Eğim • Erişilebilir tasarım', `Eğim = Dikey / Yatay = ${h}/${w} = ${simpleFraction(h, w)}.`];
+      },
+      (n) => {
+        const minAge = 12 + (n % 4), maxAge = 18 + (n % 4);
+        return [`Bir kodlama kampına yaş sınırı olarak "en az ${minAge} yaşında ve ${maxAge} yaşından küçük" koşulu getirilmiştir. Tam sayı olarak kaç farklı yaşta öğrenci başvurabilir?`, String(maxAge - minAge), 'orta', 'Eşitsizlik • Sınır analizi', `${minAge} ≤ x < ${maxAge} aralığında ${maxAge - minAge} farklı tam sayı yaş vardır.`];
+      },
+      (n) => {
+        const rate = 6 + (n % 5), mins = 16 + n, rem = 40 + (n % 15);
+        const start = rem + rate * mins;
+        return [`İçinde ${start} litre su bulunan bir depodan her dakika sabit ${rate} litre su boşaltılmaktadır. Depoda ${rem} litre su kalması için kaç dakika geçmelidir?`, String(mins), 'zor', 'Doğrusal ilişki • Su yönetimi', `${start} − ${rate}t = ${rem} => ${rate}t = ${start - rem} => t = ${mins} dakika.`];
+      },
+      (n) => {
+        const k = 1 + (n % 5), a = 3 * k, b = 4 * k, c = 5 * k;
+        return [`Dikdörtgen bir parkın kenarları ${a} m ve ${b} m’dir. Bir köşeden karşı köşeye kenarlar boyunca yürümek yerine köşegenden yürüyen biri kaç metre daha az yol yürür?`, String(a + b - c), 'zor', 'Pisagor • Rota kısaltma', `Kenar yolu ${a + b} m. Pisagor’dan köşegen √(${a}² + ${b}²) = ${c} m. Kısalan yol ${a + b - c} m.`];
+      },
+      (n) => {
+        const orig = 500 + 50 * n, paid = orig * 0.75;
+        return [`%25 indirim uygulanarak ${paid} TL’ye satılan bir bisikletin indirimden önceki etiket fiyatı kaç TL’dir?`, String(orig), 'zor', 'Yüzde • Ters orantılı denklem', `%75’i ${paid} TL ise %100’ü ${paid} ÷ 0,75 = ${orig} TL’dir.`];
+      },
+    ],
   };
 
   for (const grade of [5, 6, 7, 8]) {
     const templates = patterns[grade];
-    for (let i = 0; i < 140; i++) {
-      const t = Math.floor(i / 14);
-      const n = (i % 14) + 1;
+    for (let i = 0; i < templates.length * 12; i++) {
+      const t = i % templates.length;
+      const n = Math.floor(i / templates.length) + 1;
       const result = templates[t](n);
       out.push({
         grade,
@@ -128,7 +214,9 @@ export function buildSupplementaryQuestions(): Question[] {
         a: String(result[1]),
         explanation: result[4],
         family: `original-${grade}-${t}`,
-        source: 'Özgün Soru • MEB/LGS beceri yaklaşımı'
+        category: 'context',
+        skillBased: true,
+        source: 'Özgün Soru • MEB/LGS beceri yaklaşımı',
       });
     }
   }
@@ -138,7 +226,8 @@ export function buildSupplementaryQuestions(): Question[] {
 
 export const allQuestions: Question[] = [
   ...initialMatchQuestions,
+  ...mathOutcomeQuestions,
   ...buildSupplementaryQuestions(),
   ...contextQuestions,
-  ...sourceQuestions
+  ...sourceQuestions,
 ];

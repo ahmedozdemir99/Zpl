@@ -21,18 +21,23 @@ export function validSettings(value: unknown): value is MatchSettings {
     (candidate.outcomeCode === undefined || (candidate.course !== 'all' && typeof candidate.outcomeCode === 'string' && candidate.outcomeCode.length <= 30));
 }
 const reviewedMath = allQuestions.flatMap(q => {
+  if (q.outcomeCode) return [];
   const grade = Number(q.grade);
   const label = q.subject.toLocaleLowerCase('tr');
   let outcomeCode: string | undefined;
-  if (grade === 5 && /doğal sayı|zaman|işlem stratejisi/.test(label)) outcomeCode = 'MAT.5.1.2';
-  if (grade === 6 && /ondalık/.test(label)) outcomeCode = 'MAT.6.1.7';
+  if (grade === 5 && /doğal sayı|zaman|işlem stratejisi|bütçe|ulaşım/.test(label)) outcomeCode = 'MAT.5.1.2';
+  if (grade === 5 && /çevre/.test(label)) outcomeCode = 'MAT.5.4.1';
+  if (grade === 5 && /alan/.test(label)) outcomeCode = 'MAT.5.4.2';
+  if (grade === 6 && /ondalık|yakıt|bütçe|alışveriş/.test(label)) outcomeCode = 'MAT.6.1.7';
   if (grade === 6 && /ortak kat/.test(label)) outcomeCode = 'MAT.6.1.4';
-  if (grade === 7 && /rasyonel/.test(label)) outcomeCode = 'MAT.7.1.4';
+  if (grade === 7 && /rasyonel|tam sayı/.test(label)) outcomeCode = 'MAT.7.1.4';
+  if (grade === 7 && /yüzde/.test(label)) outcomeCode = 'MAT.7.1.6';
   if (grade === 8 && q.category === 'adaptation') {
     if (/ortak kat|ebob/.test(label)) outcomeCode = 'M.8.1.1.2';
     if (/olasılık/.test(label)) outcomeCode = 'M.8.5.1.5';
     if (/eşitsizlik/.test(label)) outcomeCode = 'M.8.2.3.1';
     if (/çarpanlara/.test(label)) outcomeCode = 'M.8.2.1.3';
+    if (/üslü/.test(label)) outcomeCode = 'M.8.1.2.2';
   }
   if (grade === 8 && /pisagor/.test(label)) outcomeCode = 'M.8.3.1.5';
   if (!outcomeCode) return [];
@@ -40,14 +45,14 @@ const reviewedMath = allQuestions.flatMap(q => {
     'M.8.5.1.5': 'Basit olayların olasılığını hesaplama',
     'M.8.2.3.1': 'Gerçek hayat durumlarını eşitsizlikle ifade etme',
     'M.8.2.1.3': 'Cebirsel ifadeleri çarpanlarına ayırma',
+    'M.8.1.2.2': 'Üslü ifadelerde eşdeğer gösterimler',
   };
   const outcome = labels[outcomeCode] ?? [...mathOutcomeQuestions, ...skillQuestions]
     .find(question => question.outcomeCode === outcomeCode)?.outcome ?? q.subject;
   return [{ ...q, course: 'mathematics' as const, outcomeCode, outcome }];
 });
 export const competitionBank = [
-  ...skillQuestions, ...reviewedQuestions, ...mathOutcomeQuestions, ...reviewedMath,
-  ...courseBank,
+  ...skillQuestions, ...mathOutcomeQuestions, ...courseBank, ...reviewedQuestions, ...reviewedMath,
 ];
 export const poolFor = (grade: string | number, course: Course) => [...new Map(competitionBank
   .filter(q => Number(q.grade) === Number(grade) && q.course === course)
@@ -57,16 +62,35 @@ export function outcomesFor(grade: string | number, course: Course) {
 }
 
 export function answerOptions(q: Question): string[] | undefined {
-  if (q.distractors) return shuffle([q.a, ...q.distractors]);
+  if (q.distractors?.length === 3) return shuffle([q.a, ...q.distractors]);
   const fraction = /^(-?\d+)\s*\/\s*([1-9]\d*)$/.exec(q.a);
   if (fraction && Number(fraction[1]) !== 0) {
     const n = Number(fraction[1]), d = Number(fraction[2]);
-    return shuffle([q.a, ...[1, 2, 3].map(i => `${n}/${d + i}`)]);
+    const candidates = [`${n}/${d + 1}`, `${n + 1}/${d + 2}`, `${n}/${d + 2}`, `${Math.max(1, n - 1)}/${d + 1}`];
+    const unique = [...new Set(candidates)].filter(c => c !== q.a).slice(0, 3);
+    if (unique.length === 3) return shuffle([q.a, ...unique]);
   }
   if (/^-?\d+(?:[.,]\d+)?$/.test(q.a)) {
     const number = Number(q.a.replace(',', '.')), precision = q.a.split(/[.,]/)[1]?.length ?? 0;
-    const step = 10 ** -precision;
-    return shuffle([q.a, ...[1, 2, 3].map(i => (number + i * step).toFixed(precision).replace('.', ','))]);
+    const baseStep = 10 ** -precision;
+    const mag = Math.abs(number);
+    const step = precision === 0 && mag >= 100 ? Math.max(5, Math.round(mag * 0.08))
+      : precision === 0 && mag >= 20 ? 2
+      : baseStep;
+    const offsets = number - step >= 0 || number < 0
+      ? [-step, step, 2 * step, -2 * step, 3 * step]
+      : [step, 2 * step, 3 * step, 4 * step];
+    const out: string[] = [];
+    const seen = new Set<string>([q.a]);
+    for (const off of offsets) {
+      const val = (number + off).toFixed(precision).replace('.', ',');
+      if (!seen.has(val)) {
+        seen.add(val);
+        out.push(val);
+        if (out.length === 3) break;
+      }
+    }
+    if (out.length === 3) return shuffle([q.a, ...out]);
   }
   if (q.a === 'Satürn') return shuffle([q.a, 'Jüpiter', 'Uranüs', 'Neptün']);
 }
@@ -92,7 +116,11 @@ export function competitionQuestions(grade: string, count: 5 | 10, settings: Mat
     });
     const primary = shuffle(pool.filter(q => q.skillBased || q.category === 'adaptation'));
     const secondary = shuffle(pool.filter(q => !primary.includes(q)));
-    if (settings.outcomeCode || course !== 'mathematics') return [...primary, ...secondary].slice(0, size);
+    if (settings.outcomeCode || course !== 'mathematics') {
+      const ordered = [...primary, ...secondary];
+      if (size <= 2) return ordered.slice(0, size);
+      return pickQuestions(grade, 'mixed', size === 10 ? 10 : 5, ordered);
+    }
     const figure = shuffle(pool.filter(q => q.figure))[0];
     if (size === 1 && figure) return [figure];
     if (size === 2) return figure ? [figure, ...[...primary, ...secondary].filter(q => !q.figure).slice(0, size - 1)] : [...primary, ...secondary].slice(0, size);

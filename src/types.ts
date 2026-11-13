@@ -29,8 +29,11 @@ export interface Fixture {
 
 export type Course = 'turkish' | 'mathematics' | 'science' | 'social' | 'religion' | 'english';
 export type MatchSettings = { course: Course | 'all'; format: 'open' | 'multiple'; seconds: number; outcomeCode?: string };
-export type Figure = { kind: 'rectangle' | 'triangle'; width: number; height: number; hideWidth?: boolean; diagonal?: boolean } |
-  { kind: 'bars'; values: number[] };
+export type Figure =
+  | { kind: 'rectangle' | 'triangle'; width: number; height: number; hideWidth?: boolean; diagonal?: boolean }
+  | { kind: 'bars'; values: number[]; labels?: string[]; title?: string; unit?: string }
+  | { kind: 'rectSplit'; width: number; height: number; cutWidth: number; cutHeight?: number; labels?: [string, string]; unit?: string }
+  | { kind: 'table'; title?: string; headers: string[]; rows: string[][] };
 export interface Question {
   course?: Course;
   outcome?: string;

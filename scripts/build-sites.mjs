@@ -1,24 +1,35 @@
 import { readdir, readFile, mkdir, writeFile } from 'node:fs/promises';
-import { extname, join } from 'node:path';
+import { extname, join, relative, sep } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
 
 const cloudflare = process.argv.includes('--cloudflare');
 const dist = new URL('../dist/', import.meta.url);
-const mimeFor = (name) => name.endsWith('.woff2') ? 'font/woff2' : mimeTypes[extname(name)];
+const distPath = fileURLToPath(dist);
+const mimeFor = (name) => name.endsWith('.woff2') ? 'font/woff2' : mimeTypes[extname(name).toLowerCase()];
 const mimeTypes = {
   '.png': 'image/png',
+  '.webp': 'image/webp',
+  '.svg': 'image/svg+xml; charset=utf-8',
+  '.ico': 'image/x-icon',
   '.html': 'text/html; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
+  '.txt': 'text/plain; charset=utf-8',
 };
 const assets = Object.create(null);
 for (const entry of await readdir(dist, { recursive: true, withFileTypes: true })) {
   if (!entry.isFile()) continue;
   const mime = mimeFor(entry.name);
   if (!mime) continue;
-  const path = join(entry.parentPath, entry.name);
-  const route = '/' + path.slice(new URL(dist).pathname.length);
-  assets[route] = { mime, content: await readFile(path, /^(image|font)\//.test(mime) ? 'base64' : 'utf8') };
+  const fullPath = join(entry.parentPath, entry.name);
+  const route = '/' + relative(distPath, fullPath).split(sep).join('/');
+  if (route.startsWith('/assets/aistudio/')) continue;
+  assets[route] = {
+    mime,
+    content: await readFile(fullPath, /^(image\/(?!svg\+xml)|font\/)/.test(mime) ? 'base64' : 'utf8'),
+  };
 }
 if (!assets['/index.html']) throw new Error('Vite index.html bulunamadı.');
 const virtualModule = {

@@ -51,6 +51,7 @@ function MatchBoard({ match, onAnswer, onCancel, drafts, onDraft }: {
 }) {
   const [homeAnswer, setHomeAnswer] = useState(drafts[0]);
   const [awayAnswer, setAwayAnswer] = useState(drafts[1]);
+  const [confirmLeave, setConfirmLeave] = useState(false);
   const solo = match.mode === 'solo';
   const question = match.questions[match.index];
   const title = modes.find(item => item.id === match.mode)?.title;
@@ -59,7 +60,14 @@ function MatchBoard({ match, onAnswer, onCancel, drafts, onDraft }: {
     <section className="league-panel mx-auto max-w-3xl space-y-4" aria-label="Oynanan maç">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="league-section-title !mb-0">{title}</h2>
-        <button type="button" className="league-secondary" onClick={onCancel}><ArrowLeft size={16} aria-hidden="true" /> Maçtan Ayrıl</button>
+        {confirmLeave ? (
+          <div className="flex items-center gap-2">
+            <button type="button" className="league-primary !bg-rose-400 !text-slate-950" onClick={onCancel}>Evet, Ayrıl</button>
+            <button type="button" className="league-secondary" onClick={() => setConfirmLeave(false)}>Vazgeç</button>
+          </div>
+        ) : (
+          <button type="button" className="league-secondary" onClick={() => setConfirmLeave(true)}><ArrowLeft size={16} aria-hidden="true" /> Maçtan Ayrıl</button>
+        )}
       </div>
       <div className="league-scoreboard text-center">
         <Timer deadline={match.deadline} />
@@ -116,6 +124,7 @@ function TeamEditor({ group, teams, onSave, onDelete }: {
 }) {
   const [draft, setDraft] = useState<TeamDraft>();
   const [message, setMessage] = useState('');
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const locked = new Set(teams.filter(team => team.id !== draft?.id).flatMap(team => team.members));
 
   return (
@@ -139,13 +148,20 @@ function TeamEditor({ group, teams, onSave, onDelete }: {
               </div>
             </div>
             <div className="mt-2 flex flex-wrap gap-2">
-              <button type="button" className="league-secondary" aria-label={`${team.name} takımını düzenle`} onClick={() => { setDraft(team); setMessage(''); }}>Düzenle</button>
-              <button type="button" className="league-secondary" aria-label={`${team.name} takımını sil`} onClick={() => {
-                if (!confirm(`${team.name} takımı ve bekleyen maçları silinsin mi?`)) return;
-                onDelete(team.id);
-                if (draft?.id === team.id) setDraft(undefined);
-                setMessage('Takım silindi.');
-              }}>Sil</button>
+              <button type="button" className="league-secondary" aria-label={`${team.name} takımını düzenle`} onClick={() => { setDraft(team); setMessage(''); setConfirmDeleteId(null); }}>Düzenle</button>
+              {confirmDeleteId === team.id ? (
+                <>
+                  <button type="button" className="league-primary !bg-rose-400 !text-slate-950" onClick={() => {
+                    onDelete(team.id);
+                    if (draft?.id === team.id) setDraft(undefined);
+                    setConfirmDeleteId(null);
+                    setMessage('Takım silindi.');
+                  }}>Silmeyi Onayla</button>
+                  <button type="button" className="league-secondary" onClick={() => setConfirmDeleteId(null)}>Vazgeç</button>
+                </>
+              ) : (
+                <button type="button" className="league-secondary" aria-label={`${team.name} takımını sil`} onClick={() => setConfirmDeleteId(team.id)}>Sil</button>
+              )}
             </div>
           </li>
         ))}

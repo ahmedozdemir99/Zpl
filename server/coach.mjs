@@ -1,4 +1,4 @@
-const model = 'gemini-3.8-flash';
+const model = 'gemini-4-hydrogen';
 const questionSchema = {
   type: 'OBJECT',
   properties: {
@@ -42,12 +42,13 @@ export async function handleCoach(request, env) {
   let prompt;
   if (makeQuestion) {
     const difficulty = ['kolay', 'orta', 'zor'].includes(input.difficulty) ? input.difficulty : 'orta';
-    prompt = `${level} için ${difficulty} düzeyinde, tek doğru cevabı olan bir matematik sorusu üret. Konu: ${clean(input.topic, 120) || 'Matematik'}. Cevabını hesaplayıp doğrula. Açıklamada işlem basamaklarını göster.`;
+    const topic = clean(input.topic, 120) || 'Matematik veya Fen/Türkçe beceri temelli konular';
+    prompt = `${level} için ${difficulty} düzeyinde, MEB beceri temelli (yeni nesil) yaklaşıma uygun, günlük yaşam senaryolu ve çok adımlı akıl yürütme gerektiren, tek net doğru cevabı olan özgün bir soru üret. Konu/Ders: ${topic}. Cevabı doğrula ve açıklamada çözüm veya muhakeme adımlarını açıkça göster.`;
   } else if (pathname === '/api/ai/explain') {
     const question = clean(input.question, 3500);
     const answer = clean(input.answer, 400);
     if (!question || !answer) return reply({ error: 'Soru veya cevap eksik.' }, 400);
-    prompt = `${level} öğrencisine bu matematik sorusunu adım adım çöz. Verilen cevap anahtarını hesapla ve tutarsızsa belirt. Soru: ${question}\nCevap anahtarı: ${answer}`;
+    prompt = `${level} öğrencisine bu soruyu adım adım açıkla. Verilen cevap anahtarını doğrula ve tutarsızsa belirt. Soru: ${question}\nCevap anahtarı: ${answer}`;
   } else if (pathname === '/api/ai/hint') {
     prompt = `Bu zekâ oyunu için çözümü söylemeden kısa bir strateji ipucu ver: ${clean(input.gameType, 40)}. Oyun durumu: ${clean(input.puzzleState, 1000)}`;
   } else {
@@ -57,9 +58,17 @@ export async function handleCoach(request, env) {
   try {
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': key,
+        'User-Agent': 'aistudio-build',
+      },
       body: JSON.stringify({
-        systemInstruction: { parts: [{ text: 'Türkçe yanıt veren bir ortaokul matematik öğretmenisin. Yalnızca matematik ve zekâ oyunları konularını ele al.' }] },
+        systemInstruction: {
+          parts: [{
+            text: 'Türkçe yanıt veren deneyimli bir ortaokul öğretmenisin. Matematik, Türkçe, Fen Bilimleri, Sosyal Bilgiler / T.C. İnkılap Tarihi, Din Kültürü, İngilizce ve zekâ oyunları alanlarında MEB/LGS beceri temelli sorular ve açık çözümler üret.',
+          }],
+        },
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: {
           maxOutputTokens: 2500,
@@ -68,14 +77,20 @@ export async function handleCoach(request, env) {
       }),
       signal: AbortSignal.timeout(18000),
     });
-    if (!response.ok) return reply({ error: 'Gemini şu anda yanıt veremiyor.' }, 502);
+    if (!response.ok) {
+      const status = response.status;
+      if (status === 429) return reply({ error: 'Gemini kota sınırına ulaşıldı. Daha sonra tekrar deneyin.' }, 502);
+      if (status === 400 || status === 403) return reply({ error: 'Gemini API anahtarı geçersiz veya yetkisiz.' }, 502);
+      return reply({ error: 'Gemini şu anda yanıt veremiyor.' }, 502);
+    }
     const result = await response.json();
-    const text = result.candidates?.[0]?.content?.parts
+    const rawText = result.candidates?.[0]?.content?.parts
       ?.filter(part => !part.thought)
       .map(part => part.text || '').join('').trim();
-    if (!text) return reply({ error: 'Gemini boş yanıt döndürdü.' }, 502);
-    if (!makeQuestion) return reply({ text });
-    const question = JSON.parse(text);
+    if (!rawText) return reply({ error: 'Gemini boş yanıt döndürdü.' }, 502);
+    if (!makeQuestion) return reply({ text: rawText });
+    const stripped = rawText.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+    const question = JSON.parse(stripped);
     if (!Object.keys(questionSchema.properties).every(field => clean(question[field], 4000))) {
       return reply({ error: 'Soru yanıtı eksik.' }, 502);
     }

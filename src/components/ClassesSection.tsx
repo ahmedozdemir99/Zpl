@@ -6,11 +6,11 @@ import { sound } from '../utils/sound';
 
 interface ClassesSectionProps {
   classes: StudentClass[];
-  onAddClass: (grade: string, branch: string) => void;
+  onAddClass: (grade: string, branch: string) => { ok: boolean; message: string };
   onAddStudent: (classId: string, names: string[]) => void;
   onEditStudents: (classId: string, names: string[]) => void;
   onDeleteClass: (classId: string) => void;
-  onMakeFixture: (classId: string) => void;
+  onMakeFixture: (classId: string) => string;
 }
 
 export const ClassesSection: React.FC<ClassesSectionProps> = ({
@@ -27,17 +27,23 @@ export const ClassesSection: React.FC<ClassesSectionProps> = ({
   const [selectedClassId, setSelectedClassId] = useState<string>('');
   const [editingClass, setEditingClass] = useState<StudentClass | null>(null);
   const [editingText, setEditingText] = useState<string>('');
+  const [statusMessage, setStatusMessage] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
+  const [addingClassId, setAddingClassId] = useState<string | null>(null);
+  const [singleStudentInput, setSingleStudentInput] = useState<string>('');
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const handleCreateClass = () => {
     sound.playClick();
-    onAddClass(grade, branch.trim().toUpperCase() || 'A');
+    const res = onAddClass(grade, branch.trim().toUpperCase() || 'A');
+    setStatusMessage({ type: res.ok ? 'ok' : 'err', text: res.message });
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (classes.length === 0) {
-      alert('Lütfen önce en az bir sınıf ekleyin.');
+      setStatusMessage({ type: 'err', text: 'Lütfen önce en az bir sınıf ekleyin.' });
+      e.target.value = '';
       return;
     }
 
@@ -48,13 +54,15 @@ export const ClassesSection: React.FC<ClassesSectionProps> = ({
       reader.onload = (evt) => {
         const text = evt.target?.result as string;
         const names = text
-          .split(/\r?\n|,/)
+          .split(/\r?\n|,|;/)
           .map(x => x.trim())
           .filter(Boolean);
         if (names.length > 0) {
           onAddStudent(targetClassId, names);
           sound.playSuccess();
-          alert(`${names.length} öğrenci sınıfa aktarıldı.`);
+          setStatusMessage({ type: 'ok', text: `${names.length} öğrenci sınıfa aktarıldı.` });
+        } else {
+          setStatusMessage({ type: 'err', text: 'Dosyada geçerli öğrenci adı bulunamadı.' });
         }
       };
       reader.readAsText(file);
@@ -78,10 +86,12 @@ export const ClassesSection: React.FC<ClassesSectionProps> = ({
           if (names.length > 0) {
             onAddStudent(targetClassId, names);
             sound.playSuccess();
-            alert(`${names.length} öğrenci Excel dosyasından aktarıldı.`);
+            setStatusMessage({ type: 'ok', text: `${names.length} öğrenci Excel dosyasından aktarıldı.` });
+          } else {
+            setStatusMessage({ type: 'err', text: 'Excel dosyasında aktarılacak öğrenci adı bulunamadı.' });
           }
         } catch {
-          alert('Excel dosyası okunamadı. Lütfen standart formatta bir dosya seçin.');
+          setStatusMessage({ type: 'err', text: 'Excel dosyası okunamadı. Lütfen standart formatta bir dosya seçin.' });
         }
       };
       reader.readAsArrayBuffer(file);
@@ -91,11 +101,11 @@ export const ClassesSection: React.FC<ClassesSectionProps> = ({
 
   const handleBulkPaste = () => {
     if (!bulkText.trim()) {
-      alert('Lütfen yapıştırılacak öğrenci isimlerini yazın.');
+      setStatusMessage({ type: 'err', text: 'Lütfen yapıştırılacak öğrenci isimlerini yazın.' });
       return;
     }
     if (classes.length === 0) {
-      alert('Lütfen önce bir sınıf ekleyin.');
+      setStatusMessage({ type: 'err', text: 'Lütfen önce bir sınıf ekleyin.' });
       return;
     }
 
@@ -109,18 +119,21 @@ export const ClassesSection: React.FC<ClassesSectionProps> = ({
       onAddStudent(targetClassId, names);
       setBulkText('');
       sound.playSuccess();
-      alert(`${names.length} öğrenci başarıyla eklendi.`);
+      setStatusMessage({ type: 'ok', text: `${names.length} öğrenci başarıyla eklendi.` });
     }
   };
 
-  const handleSingleStudentAdd = (classId: string) => {
-    const val = prompt('Öğrenci adı soyadı (birden fazla ise virgül ile ayırın):');
-    if (!val) return;
-    const names = val.split(/\r?\n|,/).map(x => x.trim()).filter(Boolean);
-    if (names.length > 0) {
-      onAddStudent(classId, names);
-      sound.playSuccess();
+  const handleSingleStudentSubmit = (classId: string) => {
+    const names = singleStudentInput.split(/\r?\n|,/).map(x => x.trim()).filter(Boolean);
+    if (names.length === 0) {
+      setStatusMessage({ type: 'err', text: 'Eklemek için en az bir öğrenci adı yazın.' });
+      return;
     }
+    onAddStudent(classId, names);
+    sound.playSuccess();
+    setSingleStudentInput('');
+    setAddingClassId(null);
+    setStatusMessage({ type: 'ok', text: `${names.length} öğrenci sınıfa eklendi.` });
   };
 
   const startEditing = (c: StudentClass) => {
@@ -137,6 +150,7 @@ export const ClassesSection: React.FC<ClassesSectionProps> = ({
     onEditStudents(editingClass.id, names);
     setEditingClass(null);
     sound.playSuccess();
+    setStatusMessage({ type: 'ok', text: `${editingClass.name} öğrenci listesi güncellendi.` });
   };
 
   return (
@@ -150,6 +164,22 @@ export const ClassesSection: React.FC<ClassesSectionProps> = ({
           {classes.length} Sınıf
         </span>
       </div>
+
+      {statusMessage && (
+        <div
+          role={statusMessage.type === 'err' ? 'alert' : 'status'}
+          className={`flex items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-xs font-bold ${
+            statusMessage.type === 'ok'
+              ? 'border-emerald-500/30 bg-emerald-500/15 text-emerald-200'
+              : 'border-rose-500/30 bg-rose-500/15 text-rose-200'
+          }`}
+        >
+          <span>{statusMessage.text}</span>
+          <button type="button" onClick={() => setStatusMessage(null)} className="text-xs underline opacity-80 hover:opacity-100">
+            Kapat
+          </button>
+        </div>
+      )}
 
       {/* Add New Class Form */}
       <div className="bg-[#171f42] border border-white/10 rounded-2xl p-4 space-y-3">
@@ -278,36 +308,96 @@ export const ClassesSection: React.FC<ClassesSectionProps> = ({
                 )}
               </div>
 
+              {/* Inline Quick Student Add */}
+              {addingClassId === c.id && (
+                <form
+                  onSubmit={e => { e.preventDefault(); handleSingleStudentSubmit(c.id); }}
+                  className="flex flex-wrap gap-2 rounded-xl border border-cyan-500/30 bg-[#0e1530] p-2.5"
+                >
+                  <input
+                    type="text"
+                    autoFocus
+                    value={singleStudentInput}
+                    onChange={e => setSingleStudentInput(e.target.value)}
+                    placeholder="Ad Soyad (virgül ile birden fazla ekleyebilirsiniz)"
+                    className="flex-1 min-w-44 bg-[#171f42] border border-white/10 text-white text-xs rounded-lg px-3 py-2 outline-none focus:border-cyan-400"
+                  />
+                  <button
+                    type="submit"
+                    className="px-3 py-2 rounded-lg bg-emerald-500 text-slate-950 font-extrabold text-xs hover:brightness-110"
+                  >
+                    Ekle
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setAddingClassId(null); setSingleStudentInput(''); }}
+                    className="px-3 py-2 rounded-lg bg-white/10 text-slate-200 font-bold text-xs hover:bg-white/20"
+                  >
+                    İptal
+                  </button>
+                </form>
+              )}
+
               {/* Actions */}
               <div className="flex flex-wrap items-center gap-2 pt-1">
                 <button
-                  onClick={() => handleSingleStudentAdd(c.id)}
+                  type="button"
+                  onClick={() => {
+                    setAddingClassId(prev => prev === c.id ? null : c.id);
+                    setSingleStudentInput('');
+                    setConfirmDeleteId(null);
+                  }}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white font-bold text-xs border border-white/10 transition-colors"
                 >
                   <Plus className="w-3.5 h-3.5 text-green-400" /> Öğrenci Ekle
                 </button>
                 <button
+                  type="button"
                   onClick={() => startEditing(c)}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white font-bold text-xs border border-white/10 transition-colors"
                 >
                   <Edit className="w-3.5 h-3.5 text-cyan-400" /> Düzenle
                 </button>
                 <button
-                  onClick={() => onMakeFixture(c.id)}
+                  type="button"
+                  onClick={() => {
+                    const msg = onMakeFixture(c.id);
+                    setStatusMessage({ type: 'ok', text: msg });
+                  }}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white font-bold text-xs border border-white/10 transition-colors"
                 >
                   <Calendar className="w-3.5 h-3.5 text-yellow-400" /> Fikstür Oluştur
                 </button>
-                <button
-                  onClick={() => {
-                    if (confirm(`${c.name} sınıfı ve öğrencileri silinsin mi?`)) {
-                      onDeleteClass(c.id);
-                    }
-                  }}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 font-bold text-xs border border-red-500/20 transition-colors ml-auto"
-                >
-                  <Trash2 className="w-3.5 h-3.5" /> Sil
-                </button>
+                {confirmDeleteId === c.id ? (
+                  <div className="flex items-center gap-1.5 ml-auto">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onDeleteClass(c.id);
+                        setConfirmDeleteId(null);
+                        setStatusMessage({ type: 'ok', text: `${c.name} sınıfı silindi.` });
+                      }}
+                      className="px-3 py-1.5 rounded-lg bg-red-500 text-white font-extrabold text-xs hover:brightness-110"
+                    >
+                      Silmeyi Onayla
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setConfirmDeleteId(null)}
+                      className="px-3 py-1.5 rounded-lg bg-white/10 text-slate-200 font-bold text-xs hover:bg-white/20"
+                    >
+                      Vazgeç
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setConfirmDeleteId(c.id)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 font-bold text-xs border border-red-500/20 transition-colors ml-auto"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" /> Sil
+                  </button>
+                )}
               </div>
             </div>
           ))

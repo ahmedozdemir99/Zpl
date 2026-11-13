@@ -181,11 +181,10 @@ export default function App() {
   };
 
   /* Classes Handlers */
-  const handleAddClass = (grade: string, branch: string) => {
+  const handleAddClass = (grade: string, branch: string): { ok: boolean; message: string } => {
     const name = `${grade}-${branch}`;
     if (state.classes.some(c => c.name === name)) {
-      alert('Bu isimde bir sınıf zaten var.');
-      return;
+      return { ok: false, message: `${name} adında bir sınıf zaten var.` };
     }
     const newClass: StudentClass = {
       id: uid(),
@@ -197,6 +196,7 @@ export default function App() {
     };
     setState(prev => ({ ...prev, classes: [...prev.classes, newClass] }));
     sound.playSuccess();
+    return { ok: true, message: `${name} sınıfı oluşturuldu.` };
   };
 
   const handleAddStudents = (classId: string, names: string[]) => {
@@ -291,7 +291,7 @@ export default function App() {
   };
 
   const handleStartMatch = (setup: MatchSetup) => {
-    if (activeMatch && !confirm('Devam eden maç kapatılsın mı?')) return;
+    if (activeMatch) return 'Devam eden maç varken yeni maç başlatılamaz.';
     const group = setup.mode === 'solo' ? undefined : state.classes.find(item => item.id === setup.classId);
     if (setup.mode !== 'solo' && !group) return 'Önce bir sınıf seç.';
     if (setup.mode === 'solo' && !['5', '6', '7', '8'].includes(setup.grade)) return 'Geçerli bir sınıf düzeyi seç.';
@@ -515,14 +515,38 @@ export default function App() {
     }
   };
 
-  const recordTraining = (grade: string, correct: number, total: number) => {
+  const recordTraining = (grade: string, correct: number, total: number, courseLabel?: string) => {
+    const gained = matchScore(correct, total);
+    const label = courseLabel ? `${grade}. sınıf · ${courseLabel}` : `${grade}. sınıf`;
     const record: MatchHistoryRecord = {
       id: uid(), date: new Date().toLocaleString('tr-TR'),
-      classId: '', className: `${grade}. sınıf`, p1: '', p2: '',
+      classId: '', className: label, p1: 'Antrenman', p2: '',
       correct1: correct, correct2: 0, winner: '', answers1: [], answers2: [],
-      type: 'Antrenman', result: `${grade}. sınıf · ${correct}/${total} doğru`,
+      type: 'Antrenman', result: `${label} · ${correct}/${total} doğru (${formatMatchScore(gained)} puan)`,
     };
-    setState(previous => ({ ...previous, history: [record, ...previous.history] }));
+    setState(previous => ({
+      ...previous,
+      score: previous.score + gained,
+      solved: previous.solved + correct,
+      history: [record, ...previous.history],
+    }));
+  };
+
+  const handleSolveWeekly = (_challengeId: string, title: string) => {
+    const record: MatchHistoryRecord = {
+      id: uid(), date: new Date().toLocaleString('tr-TR'),
+      classId: '', className: 'Haftanın Sorusu', p1: 'Oyuncu', p2: '',
+      correct1: 1, correct2: 0, winner: 'Başarılı', answers1: [], answers2: [],
+      type: 'Haftanın Sorusu', result: `${title} · Çözüldü (+50 puan)`,
+      score: 50,
+    };
+    setState(previous => ({
+      ...previous,
+      score: previous.score + 50,
+      solved: previous.solved + 1,
+      streak: previous.streak + 1,
+      history: [record, ...previous.history],
+    }));
   };
 
   return (
@@ -554,7 +578,7 @@ export default function App() {
             onAddStudent={handleAddStudents}
             onEditStudents={handleEditStudents}
             onDeleteClass={handleDeleteClass}
-            onMakeFixture={classId => alert(handleMakeFixture(classId))}
+            onMakeFixture={classId => handleMakeFixture(classId)}
           />
         )}
 
@@ -579,7 +603,7 @@ export default function App() {
               if (!activeMatch?.deadline || Date.now() < activeMatch.deadline) drafts.current = [home, away];
             }}
             onGenerateFixtures={handleMakeFixture}
-            onCancelMatch={() => { if (confirm('Maçtan ayrılmak istiyor musun?')) setActiveMatch(null); }}
+            onCancelMatch={() => setActiveMatch(null)}
           />
         )}
 
@@ -593,12 +617,24 @@ export default function App() {
           onRecord={recordResult} syncError={syncError} />}
 
 
-        {activeSection === 'weekly' && <WeeklySection />}
+        {activeSection === 'weekly' && <WeeklySection onSolveWeekly={handleSolveWeekly} />}
 
         {activeSection === 'reports' && (
           <ReportsSection
             state={state}
-            onRestoreBackup={json => setState({ ...defaultState, ...json, teams: Array.isArray(json.teams) ? json.teams : [] })}
+            onRestoreBackup={json => setState({
+              ...defaultState,
+              ...json,
+              score: typeof json.score === 'number' ? json.score : 0,
+              solved: typeof json.solved === 'number' ? json.solved : 0,
+              streak: typeof json.streak === 'number' ? json.streak : 0,
+              classes: Array.isArray(json.classes) ? json.classes : defaultInitialClasses,
+              fixtures: Array.isArray(json.fixtures) ? json.fixtures : [],
+              teams: Array.isArray(json.teams) ? json.teams : [],
+              matches: Array.isArray(json.matches) ? json.matches : [],
+              history: Array.isArray(json.history) ? json.history : [],
+              games: json.games && typeof json.games === 'object' ? { ...defaultState.games, ...json.games } : defaultState.games,
+            })}
           />
         )}
       </main>
