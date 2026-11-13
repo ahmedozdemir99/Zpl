@@ -3,16 +3,45 @@ import { handleCoach } from './server/coach.mjs';
 import { handleDuel } from './server/duel.mjs';
 import { handleStudent } from './server/student.mjs';
 import dotenv from 'dotenv';
+import { randomUUID } from 'node:crypto';
+import fsSync from 'node:fs';
 import fs from 'node:fs/promises';
+import os from 'node:os';
 import path from 'node:path';
 
 dotenv.config();
 
-// In-memory mock for Cloudflare D1 database tables (student_profiles, student_results, duel_rooms)
+const DATA_FILE = path.join(os.tmpdir(), 'zeka-pro-ligim-db.json');
+
+// In-memory + best-effort disk-backed store for Node / AI Studio / Cloud Run preview
 function createMockD1() {
   const profiles = new Map<string, string>();
   const results = new Map<string, Array<{ id: string; date: string; result: string }>>();
   const duelRooms = new Map<string, { id: string; code: string; state: string; version: number; expires_at: number }>();
+
+  try {
+    if (fsSync.existsSync(DATA_FILE)) {
+      const saved = JSON.parse(fsSync.readFileSync(DATA_FILE, 'utf-8'));
+      if (saved && typeof saved === 'object') {
+        for (const [k, v] of Object.entries(saved.profiles || {})) profiles.set(k, String(v));
+        for (const [k, v] of Object.entries(saved.results || {})) if (Array.isArray(v)) results.set(k, v);
+        for (const [k, v] of Object.entries(saved.duelRooms || {})) if (v && typeof v === 'object') duelRooms.set(k, v as any);
+      }
+    }
+  } catch {}
+
+  let saveTimer: ReturnType<typeof setTimeout> | undefined;
+  const persistSoon = () => {
+    if (saveTimer) clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+      const payload = JSON.stringify({
+        profiles: Object.fromEntries(profiles),
+        results: Object.fromEntries(results),
+        duelRooms: Object.fromEntries(duelRooms),
+      });
+      void fs.writeFile(DATA_FILE, payload, 'utf-8').catch(() => {});
+    }, 150);
+  };
 
   return {
     prepare(sql: string) {
@@ -56,6 +85,7 @@ function createMockD1() {
               if (normalized.startsWith('INSERT INTO student_profiles')) {
                 const [userId, profile] = args;
                 profiles.set(String(userId), String(profile));
+                persistSoon();
                 return { meta: { changes: 1 } };
               }
               if (normalized.startsWith('INSERT OR IGNORE INTO student_results')) {
@@ -67,6 +97,7 @@ function createMockD1() {
                 }
                 list.push({ id: String(id), date: String(date), result: String(result) });
                 results.set(key, list);
+                persistSoon();
                 return { meta: { changes: 1 } };
               }
               if (normalized.startsWith('DELETE FROM duel_rooms WHERE expires_at <=')) {
@@ -78,6 +109,7 @@ function createMockD1() {
                     changes++;
                   }
                 }
+                if (changes > 0) persistSoon();
                 return { meta: { changes } };
               }
               if (normalized.startsWith('INSERT OR IGNORE INTO duel_rooms')) {
@@ -94,6 +126,7 @@ function createMockD1() {
                   version: 0,
                   expires_at: Number(expiresAt),
                 });
+                persistSoon();
                 return { meta: { changes: 1 } };
               }
               if (normalized.startsWith('UPDATE duel_rooms SET state = ?')) {
@@ -108,6 +141,7 @@ function createMockD1() {
                   version: row.version + 1,
                   expires_at: Number(expiresAt),
                 });
+                persistSoon();
                 return { meta: { changes: 1 } };
               }
               return { meta: { changes: 0 } };
@@ -157,8 +191,32 @@ app.all('/api/ai/:operation', async (req, res) => {
   await sendWebResponse(res, response);
 });
 
+const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function readCookie(header: string | undefined, name: string) {
+  if (!header) return '';
+  for (const part of header.split(';')) {
+    const [k, ...rest] = part.trim().split('=');
+    if (k === name) return rest.join('=').trim();
+  }
+  return '';
+}
+
 app.all(['/api/student', '/api/student/*'], async (req, res) => {
-  const user = req.get('oai-authenticated-user-id') || 'local-student';
+  const authUser = req.get('oai-authenticated-user-id')?.trim();
+  let user = authUser || '';
+  if (!user) {
+    const existing = readCookie(req.get('cookie'), 'zeka_uid');
+    if (uuidPattern.test(existing)) {
+      user = 'browser:' + existing;
+    } else {
+      const created = randomUUID();
+      user = 'browser:' + created;
+      const isHttps = req.protocol === 'https' || req.get('x-forwarded-proto') === 'https';
+      const cookieFlags = isHttps ? 'SameSite=None; Secure' : 'SameSite=Lax';
+      res.append('Set-Cookie', `zeka_uid=${created}; HttpOnly; ${cookieFlags}; Path=/; Max-Age=31536000`);
+    }
+  }
   const response = await handleStudent(toWebRequest(req), mockDb, user);
   await sendWebResponse(res, response);
 });

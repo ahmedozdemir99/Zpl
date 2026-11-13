@@ -66,16 +66,16 @@ export async function handleCoach(request, env) {
       body: JSON.stringify({
         systemInstruction: {
           parts: [{
-            text: 'Türkçe yanıt veren deneyimli bir ortaokul öğretmenisin. Matematik, Türkçe, Fen Bilimleri, Sosyal Bilgiler / T.C. İnkılap Tarihi, Din Kültürü, İngilizce ve zekâ oyunları alanlarında MEB/LGS beceri temelli sorular ve açık çözümler üret.',
+            text: 'Türkçe yanıt veren deneyimli bir ortaokul öğretmenisin. Matematik, Türkçe, Fen Bilimleri, Sosyal Bilgiler / T.C. İnkılap Tarihi, Din Kültürü, İngilizce ve zekâ oyunları alanlarında MEB/LGS beceri temelli sorular ve açık, öz çözümler üret. Yanıtların net ve öğrenci seviyesine uygun uzunlukta olsun.',
           }],
         },
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: {
-          maxOutputTokens: 2500,
+          thinkingConfig: { thinkingLevel: 'LOW' },
           ...(makeQuestion ? { responseMimeType: 'application/json', responseSchema: questionSchema } : {}),
         },
       }),
-      signal: AbortSignal.timeout(18000),
+      signal: AbortSignal.timeout(25000),
     });
     if (!response.ok) {
       const status = response.status;

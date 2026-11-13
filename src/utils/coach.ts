@@ -7,7 +7,7 @@ export async function requestCoach(operation: string, body: object) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
-    signal: AbortSignal.timeout(20000),
+    signal: AbortSignal.timeout(28000),
   });
   if (!response.ok) throw new Error('Gemini bağlantısı kurulamadı.');
   return response.json();
