@@ -3,6 +3,7 @@ import { Volume2, VolumeX, Sparkles, Trophy, School, Puzzle, Calculator, Lightbu
 import { AppState } from '../types';
 import { crests, type Crest } from '../utils/student';
 import { sound } from '../utils/sound';
+import { PWAInstallButton } from './PWAInstallButton';
 
 interface HeaderProps {
   state: AppState;
@@ -50,6 +51,7 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Quick Actions & Sound Toggle */}
           <div className="flex items-center gap-2">
+            <PWAInstallButton />
             <button
               onClick={openAICoach}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-white/15 bg-white/5 text-white font-bold text-xs hover:brightness-110 active:scale-95 transition-all"

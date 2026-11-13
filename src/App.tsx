@@ -11,6 +11,7 @@ import { WeeklySection } from './components/WeeklySection';
 import { ReportsSection } from './components/ReportsSection';
 import { WinnerModal } from './components/WinnerModal';
 import { AICoachModal } from './components/AICoachModal';
+import { OfflineIndicator } from './components/PWAInstallButton';
 
 import { AppState, StudentClass, MatchState, MatchSetup, Fixture, GameType, ClassTeam, MatchHistoryRecord } from './types';
 import { competitionQuestions, correctAnswer, defaults, validSettings } from './utils/competition';
@@ -646,6 +647,9 @@ export default function App() {
 
       {/* AI Coach Modal */}
       <AICoachModal isOpen={aiCoachOpen} onClose={() => setAiCoachOpen(false)} />
+
+      {/* Offline Connectivity Indicator */}
+      <OfflineIndicator />
     </div>
   );
 }

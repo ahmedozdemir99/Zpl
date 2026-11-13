@@ -1,0 +1,140 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <radialGradient id="bgGlow" cx="50%" cy="52%" r="48%">
+      <stop offset="0%" stop-color="#4e471a" stop-opacity="0.7" />
+      <stop offset="55%" stop-color="#2e2d24" stop-opacity="0.55" />
+      <stop offset="100%" stop-color="#262522" stop-opacity="1" />
+    </radialGradient>
+    <linearGradient id="goldMain" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffe733" />
+      <stop offset="55%" stop-color="#ffb800" />
+      <stop offset="100%" stop-color="#f57c00" />
+    </linearGradient>
+    <linearGradient id="goldLeaf" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffe629" />
+      <stop offset="100%" stop-color="#f79400" />
+    </linearGradient>
+    <linearGradient id="plaqueGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fff04d" />
+      <stop offset="50%" stop-color="#ffc400" />
+      <stop offset="100%" stop-color="#f58a00" />
+    </linearGradient>
+  </defs>
+
+  <!-- Full bleed background -->
+  <rect width="512" height="512" fill="#262522" />
+  <rect width="512" height="512" fill="url(#bgGlow)" />
+
+  <!-- Concentric subtle golden rings -->
+  <g fill="none" stroke="#806c23" stroke-opacity="0.35">
+    <circle cx="256" cy="264" r="168" stroke-width="1.5" stroke-dasharray="280 90 140 80" />
+    <circle cx="256" cy="264" r="186" stroke-width="1.5" stroke-dasharray="210 110 190 120" />
+    <circle cx="256" cy="264" r="204" stroke-width="1.5" stroke-dasharray="300 120 120 100" />
+    <circle cx="256" cy="264" r="222" stroke-width="1.5" stroke-dasharray="180 140 240 90" />
+  </g>
+  <g fill="#806c23" fill-opacity="0.45">
+    <circle cx="336" cy="116" r="4" />
+    <circle cx="384" cy="136" r="3.5" />
+    <circle cx="152" cy="130" r="3.5" />
+    <circle cx="448" cy="212" r="3.5" />
+    <circle cx="78" cy="316" r="3.5" />
+  </g>
+
+  <!-- Laurel Wreath Left -->
+  <g fill="url(#goldLeaf)" stroke="#262522" stroke-width="1.2">
+    <path d="M220 120 C206 116 192 122 184 134 C198 136 212 132 220 120 Z" />
+    <path d="M198 136 C182 132 168 140 162 154 C178 156 192 150 198 136 Z" />
+    <path d="M178 154 C160 152 146 162 142 178 C158 178 172 170 178 154 Z" />
+    <path d="M160 176 C142 176 130 188 128 206 C144 204 156 194 160 176 Z" />
+    <path d="M148 202 C130 206 120 220 120 238 C136 234 146 220 148 202 Z" />
+    <path d="M140 230 C122 238 114 254 116 272 C132 266 140 250 140 230 Z" />
+    <path d="M138 260 C122 270 116 288 122 306 C136 296 142 280 138 260 Z" />
+    <path d="M144 290 C130 304 128 322 136 338 C148 326 150 308 144 290 Z" />
+    <path d="M156 320 C146 336 148 354 160 368 C168 354 166 336 156 320 Z" />
+    <path d="M176 346 C170 362 174 378 188 388 C192 372 188 356 176 346 Z" />
+    <!-- Outer tips left -->
+    <path d="M196 124 C188 112 174 110 164 116 C174 126 186 130 196 124 Z" />
+    <path d="M172 140 C162 128 148 128 138 138 C150 146 164 148 172 140 Z" />
+    <path d="M150 160 C138 150 124 154 116 166 C130 172 144 170 150 160 Z" />
+    <path d="M132 186 C118 178 106 184 100 198 C114 202 128 198 132 186 Z" />
+    <path d="M120 216 C106 212 96 220 94 234 C108 234 118 228 120 216 Z" />
+    <path d="M114 248 C100 248 92 258 92 272 C106 270 114 262 114 248 Z" />
+    <path d="M116 280 C102 284 96 296 100 310 C112 304 118 294 116 280 Z" />
+    <path d="M126 312 C114 320 112 332 118 346 C128 338 132 324 126 312 Z" />
+    <path d="M142 342 C134 352 136 366 146 376 C152 366 152 352 142 342 Z" />
+  </g>
+
+  <!-- Laurel Wreath Right (mirrored) -->
+  <g transform="translate(512,0) scale(-1,1)" fill="url(#goldLeaf)" stroke="#262522" stroke-width="1.2">
+    <path d="M220 120 C206 116 192 122 184 134 C198 136 212 132 220 120 Z" />
+    <path d="M198 136 C182 132 168 140 162 154 C178 156 192 150 198 136 Z" />
+    <path d="M178 154 C160 152 146 162 142 178 C158 178 172 170 178 154 Z" />
+    <path d="M160 176 C142 176 130 188 128 206 C144 204 156 194 160 176 Z" />
+    <path d="M148 202 C130 206 120 220 120 238 C136 234 146 220 148 202 Z" />
+    <path d="M140 230 C122 238 114 254 116 272 C132 266 140 250 140 230 Z" />
+    <path d="M138 260 C122 270 116 288 122 306 C136 296 142 280 138 260 Z" />
+    <path d="M144 290 C130 304 128 322 136 338 C148 326 150 308 144 290 Z" />
+    <path d="M156 320 C146 336 148 354 160 368 C168 354 166 336 156 320 Z" />
+    <path d="M176 346 C170 362 174 378 188 388 C192 372 188 356 176 346 Z" />
+    <path d="M196 124 C188 112 174 110 164 116 C174 126 186 130 196 124 Z" />
+    <path d="M172 140 C162 128 148 128 138 138 C150 146 164 148 172 140 Z" />
+    <path d="M150 160 C138 150 124 154 116 166 C130 172 144 170 150 160 Z" />
+    <path d="M132 186 C118 178 106 184 100 198 C114 202 128 198 132 186 Z" />
+    <path d="M120 216 C106 212 96 220 94 234 C108 234 118 228 120 216 Z" />
+    <path d="M114 248 C100 248 92 258 92 272 C106 270 114 262 114 248 Z" />
+    <path d="M116 280 C102 284 96 296 100 310 C112 304 118 294 116 280 Z" />
+    <path d="M126 312 C114 320 112 332 118 346 C128 338 132 324 126 312 Z" />
+    <path d="M142 342 C134 352 136 366 146 376 C152 366 152 352 142 342 Z" />
+  </g>
+
+  <!-- Trophy Stem -->
+  <path d="M242 292 L270 292 C270 322 276 340 288 348 L224 348 C236 340 242 322 242 292 Z" fill="url(#goldMain)" />
+  <rect x="218" y="346" width="76" height="9" rx="4.5" fill="#ffd426" />
+
+  <!-- Trophy Base -->
+  <rect x="192" y="355" width="128" height="44" rx="5" fill="#18181b" stroke="#3f3f46" stroke-width="2" />
+  <rect x="186" y="395" width="140" height="10" rx="4" fill="#111114" stroke="#3f3f46" stroke-width="1.5" />
+  <path d="M206 363 L306 363 C306 367 309 369 312 369 L312 385 C309 385 306 387 306 391 L206 391 C206 387 203 385 200 385 L200 369 C203 369 206 367 206 363 Z" fill="url(#plaqueGold)" />
+  <circle cx="207" cy="377" r="2.2" fill="#262522" />
+  <circle cx="305" cy="377" r="2.2" fill="#262522" />
+
+  <!-- Golden Brain Trophy -->
+  <path d="M254 176
+           C254 166 244 159 233 159
+           C218 159 207 170 206 184
+           C194 188 187 200 190 214
+           C181 222 180 238 189 249
+           C187 265 196 280 210 285
+           C215 299 229 306 242 301
+           C248 299 253 292 254 282 Z"
+        fill="url(#goldMain)" stroke="#d97706" stroke-width="3" stroke-linejoin="round" />
+
+  <path d="M258 176
+           C258 166 268 159 279 159
+           C294 159 305 170 306 184
+           C318 188 325 200 322 214
+           C331 222 332 238 323 249
+           C325 265 316 280 302 285
+           C297 299 283 306 270 301
+           C264 299 259 292 258 282 Z"
+        fill="url(#goldMain)" stroke="#d97706" stroke-width="3" stroke-linejoin="round" />
+
+  <!-- Brain Sulci / Folds -->
+  <g fill="none" stroke="#c25e00" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M235 174 C228 185 232 198 242 204" />
+    <path d="M214 190 C220 202 212 216 200 220" />
+    <path d="M244 218 C230 220 222 232 228 245" />
+    <path d="M198 246 C208 248 216 256 214 268" />
+    <path d="M242 260 C234 270 236 284 244 290" />
+
+    <path d="M277 174 C284 185 280 198 270 204" />
+    <path d="M298 190 C292 202 300 216 312 220" />
+    <path d="M268 218 C282 220 290 232 284 245" />
+    <path d="M314 246 C304 248 296 256 298 268" />
+    <path d="M270 260 C278 270 276 284 268 290" />
+  </g>
+
+  <!-- Sparkle stars matching reference -->
+  <path d="M196 200 L199 208 L207 211 L199 214 L196 222 L193 214 L185 211 L193 208 Z" fill="#ffffff" />
+  <circle cx="209" cy="218" r="2.2" fill="#ffffff" fill-opacity="0.9" />
+</svg>
